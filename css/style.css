@@ -1,0 +1,204 @@
+:root {
+    --aspect-w: 4015;
+    --aspect-h: 2958;
+    --backgroundcolor: #33333;
+    --bordercolor: red;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; 
+}
+.frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--aspect-w) / var(--aspect-h);
+    background-image: url('pictures/radio-mantis-bg.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    margin-top: -5%;
+}
+.infobox {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 6%;
+    top: 13.14%;
+    width: 21.5%; 
+    height: 75%;
+}
+.logobox{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 0%;
+    width: 100%; 
+    height: 25%;
+    /*background-image: url(pictures/logo.png);*/
+    background-image: url(pictures/logo.png);
+    background-repeat: no-repeat;
+    background-size: 80% auto;
+    background-position: center;
+}
+
+
+.picturebox{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 25%;
+    width: 100%; 
+    height: 30%;
+    background-image: url(pictures/botond.png);
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    background-position: center;
+}
+
+.playerbox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 55%;
+    width: 100%; 
+    height: 30%;
+    display: flex;
+    flex-direction: column;
+}
+
+.player {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    top: 3%;
+    width: 100%;
+    height: 20%; 
+    aspect-ratio: 1 / 1; 
+}
+
+
+.button {
+    width: 30%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    
+    background-image: url('pictures/play.png');
+    background-size: 40%; 
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.button:hover {
+    transform: scale(1.02); 
+}
+
+.button.paused {
+    background-image: url('pictures/pause.png');
+}
+
+.playertext{
+    width: 100%;
+    height: 100%;
+    background-image: url('pictures/nowplaying.png');
+    background-size: 50%;
+    background-position: left center;
+    background-repeat: no-repeat;
+
+}
+.upcommingbox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 85%;
+    width: 100%; 
+    height: 30%;
+}
+.tvbox{
+    position: absolute;
+    border: 3px solid var(--bordercolor);
+    left: 31.5%;
+    top: 45.5%;
+    width: 68%; 
+    height: 32%;
+}
+.tvframe{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 0%;
+    width: 100%; 
+    height: 82%;
+}
+.vinylbox{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 5%;
+    top: 33.9%;
+    width: 16%; 
+    height: 50%;
+}
+.insidetvbox{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 35%;
+    top: 23.5%;
+    width: 27%; 
+    height: 50%;
+}
+.menu{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 82%;
+    width: 100%; 
+    height: 18%;
+    flex-direction: row;
+}
+.about_usbox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 0%;
+    width: 25%; 
+    height: 100%;
+    text-align: center;
+}
+.residentsbox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 25%;
+    top: 0%;
+    width: 25%; 
+    height: 100%;
+    text-align: center;
+
+}
+.schedulebox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 50%;
+    top: 0%;
+    width: 25%; 
+    height: 100%;
+    text-align: center;
+}
+.donatebox{
+    position: absolute;
+    flex-direction: column;
+    border: 1px solid var(--bordercolor);
+    left: 75%;
+    top: 0%;
+    width: 25%; 
+    height: 100%;
+    text-align: center;
+}
