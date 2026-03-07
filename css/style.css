@@ -67,14 +67,17 @@ p{
     position: absolute;
     display: flex;
     flex-direction: column; 
-    justify-content: center;
+    justify-content: flex-start;
     border: 3px solid green;
     left: 0%;
     top: 55%;
     right: 10px ;
     width: 100%; 
-    height: 18%;
+    height: 22%;
     padding-left: 10px; 
+    padding-top: 10px;
+    box-sizing: border-box;
+
 }
 
 .player-top-row {
@@ -103,26 +106,29 @@ p{
 }
 
 .nowplaying p {
-    font-size: 0.7rem;
+    font-size: clamp(0.6rem, 1vw, 1rem);
     text-transform: uppercase;
     opacity: 0.8;
 }
 
 .playertext p {
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 1.5vw, 1.4rem);
     font-weight: bold;
     margin: 2px 0;
 }
 
 .currentshowtime p {
-    font-size: 0.9rem;
+    font-size: clamp(0.7rem, 1.2vw, 1.1rem);
+}
+.upnexttitle p, .upcommingtitle p, .upcomingtime p {
+    font-size: clamp(0.7rem, 1.2vw, 1.1rem);
 }
 .upcommingbox{
     position: absolute;
     flex-direction: column;
     display: flex;
     left: 0%;
-    top: 73%;
+    top: 77%;
     width: 100%; 
     height: 30%;
     margin: 2%;
