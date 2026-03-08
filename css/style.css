@@ -9,6 +9,7 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden; 
+    background-image: url(pictures/background.png);
 }
 p{
     margin: 0;
@@ -43,7 +44,7 @@ p{
     width: 100%; 
     height: 25%;
     /*background-image: url(pictures/logo.png);*/
-    background-image: url(pictures/logo.png);
+    background-image: url(pictures//logov2.png);
     background-repeat: no-repeat;
     background-size: 80% auto;
     background-position: center;
@@ -68,7 +69,7 @@ p{
     display: flex;
     flex-direction: column; 
     justify-content: flex-start;
-    border: 3px solid green;
+    border: 3px solid var(--backgroundcolor);
     left: 0%;
     top: 55%;
     right: 10px ;
@@ -127,6 +128,7 @@ p{
     position: absolute;
     flex-direction: column;
     display: flex;
+    justify-content: flex-start;
     left: 0%;
     top: 77%;
     width: 100%; 
@@ -134,8 +136,7 @@ p{
     margin: 2%;
 }
 .upnexttitle{
-    width: 100%;
-    height: 100%;
+
 }
 .upcommingitem{
     flex-direction: column;
@@ -182,7 +183,33 @@ p{
     top: 82%;
     width: 100%; 
     height: 18%;
+    display: flex;
     flex-direction: row;
+    justify-content: center;
+}
+.menu div {
+    /* Base Font Styling */
+    font-family: 'Alumni Sans', sans-serif;
+    font-weight: 1000; /* Bold */
+    text-transform: uppercase;
+    color: #321714; 
+    
+    /* 1. The Stroke */
+    /* -webkit-text-stroke works in all modern browsers */
+    -webkit-text-stroke: 0.7px #492E27; 
+
+    /* 2. Faking the Inner Shadow */
+    /* We create a dark shadow top-left, and a faint light shadow bottom-right to make it look indented/debossed */
+    text-shadow: 
+        -1px -1px 2px rgba(0, 0, 0, 0.8), /* Dark top inner edge */
+        1px 1px 1px rgba(255, 255, 255, 0.15); /* Light bottom outer edge highlight */
+
+    /* 3. The Layer Blur */
+    /* This adds that slightly soft, gritty printed look */
+    filter: blur(0.2px); 
+    
+    /* Ensuring the scaling we set up earlier stays */
+    font-size: clamp(2rem, 4vw, 3rem); 
 }
 
 .about_usbox{
@@ -194,6 +221,9 @@ p{
     width: 25%; 
     height: 100%;
     text-align: center;
+    justify-content: center;
+    display: flex;
+
 }
 .residentsbox{
     position: absolute;
@@ -204,6 +234,9 @@ p{
     width: 25%; 
     height: 100%;
     text-align: center;
+    display: flex;
+    justify-content: center;
+
 
 }
 .schedulebox{
@@ -215,6 +248,8 @@ p{
     width: 25%; 
     height: 100%;
     text-align: center;
+    display: flex;
+    justify-content: center;
 }
 .donatebox{
     position: absolute;
@@ -225,4 +260,7 @@ p{
     width: 25%; 
     height: 100%;
     text-align: center;
+    display: flex;
+    justify-content: center;
+
 }
