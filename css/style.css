@@ -112,7 +112,7 @@ p{
     opacity: 0.8;
 }
 
-.playertext p {
+.infobox .playertext p {
     font-size: clamp(0.9rem, 1.5vw, 1.4rem);
     font-weight: bold;
     margin: 2px 0;
@@ -175,6 +175,47 @@ p{
     top: 23.5%;
     width: 27%; 
     height: 50%;
+    display: flex;
+    flex-direction: column;
+}
+.tvtext{
+    position: absolute;
+    border: 1px solid var(--bordercolor);
+    left: 0%;
+    top: 0%;
+    width: 100%; 
+    height: 20%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    font-family: 'Abel', sans-serif;
+    color: white;
+    -webkit-text-stroke: 0.1px black; 
+
+}.tvtext .dot {
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.insidetvbox .playertext{
+    position: absolute;
+    left: 0%;
+    top: 20%;
+    width: 100%; 
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    padding-top: 10px;
+    align-items:flex-start;
+    text-transform: uppercase;
+    font-size: clamp(1.5rem, 3vw, 2rem); 
+    font-family: 'Abel', sans-serif;
+    font-weight: 900;
+    color: white;
+
 }
 .menu{
     position: absolute;
