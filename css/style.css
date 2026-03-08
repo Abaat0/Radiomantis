@@ -2,7 +2,10 @@
     --aspect-w: 4015;
     --aspect-h: 2958;
     --backgroundcolor: #33333;
-    --bordercolor: red;
+    --bordercolor: transparent;
+}
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -10,6 +13,8 @@ body {
     padding: 0;
     overflow-x: hidden; 
     background-image: url(pictures/background.png);
+    background-size: cover;
+    background-attachment: fixed;
 }
 p{
     margin: 0;
@@ -303,5 +308,76 @@ p{
     text-align: center;
     display: flex;
     justify-content: center;
+}
 
+/* Container for the text area below the radio */
+#content-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 5% auto; 
+    padding: 20px;
+    border: 2px solid var(--bordercolor);
+    color: #6ADB7C; /* Your Radiomantis Green */
+    font-family: 'Abel', sans-serif;
+    letter-spacing: 5%;
+    aspect-ratio: var(--aspect-w) / var(--aspect-h);
+
+    
+    display: none; 
+}
+
+/* When the container is active, show it */
+#content-container.show {
+    display: block;
+}
+
+/* Hide all individual panels by default */
+.content-panel {
+    display: none;
+}
+
+/* Show only the active panel */
+.content-panel.active {
+    display: block;
+    animation: fadeIn 0.4s ease-in-out; /* Smooth little fade effect */
+}
+
+.panel-title {
+    font-family: 'Abel', sans-serif;
+    color: #6ADB7C;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: 0em;
+    margin-top: 0;
+    text-align: left;
+    border-bottom: 1px solid var(--bordercolor);
+    padding-bottom: 10px;
+}
+
+.custom-schedule {
+    list-style-type: none;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+.custom-schedule li {
+    margin-bottom: 15px;
+    border-bottom: 1px dotted rgba(106, 219, 124, 0.3);
+    padding-bottom: 5px;
+}
+
+.custom-schedule .time {
+    font-weight: bold;
+    color: white;
+    margin-right: 15px;
+}
+
+/* Simple fade animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Make your menu items look clickable */
+.menu div {
+    cursor: pointer;
 }
