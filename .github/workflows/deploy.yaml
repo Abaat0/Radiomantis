@@ -1,0 +1,26 @@
+name: Deploy Website to VPS
+
+on:
+  push:
+    branches:
+      - main # This triggers the action when you push to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into VPS and pull latest code
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Navigate to your website folder
+            cd /var/www/radiomantis 
+            
+            # Discard any local changes on the server just in case
+            git reset --hard HEAD
+            
+            # Pull the latest code
+            git pull origin main
