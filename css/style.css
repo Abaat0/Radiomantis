@@ -2,7 +2,7 @@
     --aspect-w: 4015;
     --aspect-h: 2958;
     --backgroundcolor: #33333;
-    --bordercolor: transparent;
+    --bordercolor: red;
 }
 html {
     scroll-behavior: smooth;
@@ -149,7 +149,7 @@ p{
     width: 100%;
     height: 100%;
 }
-.tvbox{
+.dresserframe{
     position: absolute;
     border: 3px solid var(--bordercolor);
     left: 31.5%;
@@ -158,7 +158,7 @@ p{
     height: 32%;
     
 }
-.tvbox p{
+.dresserframe p{
     filter: blur(1.2px);
 }
 .tvframe{
@@ -385,4 +385,73 @@ p{
 /* Make your menu items look clickable */
 .menu div {
     cursor: pointer;
+}
+
+/*Overwrites anything above if the width is less thant x*/
+@media (max-width: 768px) {
+
+    .tvbox, .menu, .dresserframe {
+        display: none !important;
+    }
+  
+    .frame{
+        background-image: none;
+        aspect-ratio: unset;
+        margin-top: 0;
+         /* Gives some breathing room around the edges */
+        height: auto;
+        min-height: 100vh; /* Ensures the dark background covers the whole screen */
+    }
+    .infobox{
+        position: relative;
+        left: unset;
+        top: unset;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--bordercolor);
+        width: 100%; 
+        height: auto;
+        color: #6ADB7C;
+        font-family: Abel;
+        letter-spacing: 5%;
+        
+    }
+    .logobox, .picturebox, .playerbox, .upcommingbox {
+        position: relative;
+        left: unset;
+        top: unset;
+        width: 100%;
+        height: auto;
+
+    }
+    .playerbox, .upcommingbox {
+        margin-left: 10px;
+    }
+    .logobox {
+        min-height: 200px; 
+        background-size: contain;
+        background-position: left;
+    }
+
+    .picturebox {
+        min-height: 400px;
+    }
+
+    /* 6. Minor tweaks for the text boxes so they fit well */
+    .playerbox {
+        border-left: none;
+        border-right: none;
+        padding: 10px;
+    }
+
+    .upcommingbox {
+        margin: 0;
+        padding: 0 10px;
+    }    
+    .currentshowtime p, .upcomingtime p{
+        font-size: 1.1rem; 
+    }
+     .infobox .playertext p, .upnexttitle p, .upcommingtitle p, .upcomingtime p,.nowplaying p {
+        font-size: 1.4rem; 
+    }
 }
