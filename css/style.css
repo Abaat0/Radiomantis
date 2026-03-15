@@ -2,7 +2,7 @@
     --aspect-w: 4015;
     --aspect-h: 2958;
     --backgroundcolor: #33333;
-    --bordercolor: transparent
+    --bordercolor: red
 }
 * {
     box-sizing: border-box;
