@@ -45,3 +45,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+const showDirectory = {
+    // "azuracast_username": { dj: "DJ Name", show: "Show Name", image: "filename.png" }
+    "sangwich_show": { 
+        dj: "botond", 
+        show: "The Sangwich Show", 
+        image: "botond.png" 
+    },
+    "leather_music": { 
+        dj: "swagbert", 
+        show: "Leather Music", 
+        image: "swagbert.png" 
+    },
+    "bee_suave": { 
+        dj: "bee suave", 
+        show: "The Sangwich Show", // Whatever Bee Suave's show is called!
+        image: "beesuave.png" 
+    }
+};
+// get info from the API and update the website with it
+async function updateRadioData() {
+    try {
+        const response = await fetch('https://radiomantis.com/api/nowplaying/2');
+        const radioData = await response.json();
+
+        const currentSong = radioData.now_playing.song.title || "Unknown Track"; 
+        
+        const streamerAccount = radioData.live.streamer_name; 
+
+        // Grab your HTML elements
+        const playerTextDiv = document.querySelector('.infobox .playertext p');
+        const tvTextDiv = document.querySelector('.insidetvbox .playertext');
+        const pictureDiv = document.querySelector(".picturebox");
+
+        if (radioData.live.is_live) {
+            
+            // Look up the account name in our dictionary
+            const activeShow = showDirectory[streamerAccount];
+
+            if (activeShow) {
+                const formattedText = `${activeShow.show} w/ ${activeShow.dj}`.toLowerCase();
+                
+                playerTextDiv.textContent = formattedText;
+                tvTextDiv.textContent = formattedText;
+                
+                pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
+            } else {
+                const fallbackText = `live w/ ${streamerAccount}`.toLowerCase();
+                
+                playerTextDiv.textContent = fallbackText;
+                tvTextDiv.textContent = fallbackText;
+                pictureDiv.style.backgroundImage = `url(pictures/botond.png)`; 
+            }
+
+        } else {
+            // When NOBODY is live (AutoDJ is playing)
+            playerTextDiv.textContent = currentSong.toLowerCase();
+            tvTextDiv.textContent = currentSong.toLowerCase();
+            
+            pictureDiv.style.backgroundImage = `url(pictures/autodj_graphic.png)`; 
+        } 
+
+    } catch (error) {
+        console.error("Oops, couldn't fetch the radio data:", error);
+    }
+}
+
+updateRadioData();
+
+setInterval(updateRadioData, 15000);

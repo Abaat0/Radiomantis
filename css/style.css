@@ -2,7 +2,7 @@
     --aspect-w: 4015;
     --aspect-h: 2958;
     --backgroundcolor: #33333;
-    --bordercolor: red
+    --bordercolor: transparent;
 }
 * {
     box-sizing: border-box;
@@ -59,7 +59,7 @@ p{
 }
 
 
-.picturebox{
+#picturebox{
     position: absolute;
     border: 1px solid var(--bordercolor);
     left: 0%;
@@ -205,7 +205,7 @@ p{
     font-family: 'Abel', sans-serif;
     color: white;
     -webkit-text-stroke: 0.1px black; 
-
+    font-size: clamp(0.5rem, 1.6vw, 1.2rem);
 }.tvtext .dot {
     width: 12px;
     height: 12px;
@@ -224,17 +224,17 @@ p{
     padding-top: 10px;
     align-items:flex-start;
     text-transform: uppercase;
-    font-size: clamp(1.5rem, 3vw, 2rem); 
+    font-size: clamp(0.7rem, 2vw, 2.5rem); 
     font-family: 'Abel', sans-serif;
     font-weight: 900;
     color: white;
-
+    line-height: 1.1;
 }
 .menu{
     position: absolute;
     border: 1px solid var(--bordercolor);
     left: 0%;
-    top: 82%;
+    top: 84%;
     width: 100%; 
     height: 18%;
     display: flex;
@@ -242,28 +242,20 @@ p{
     justify-content: center;
 }
 .menu div {
-    /* Base Font Styling */
     font-family: 'Alumni Sans', sans-serif;
-    font-weight: 1000; /* Bold */
+    font-weight: 1000; 
     text-transform: uppercase;
     color: #321714; 
     
-    /* 1. The Stroke */
-    /* -webkit-text-stroke works in all modern browsers */
     -webkit-text-stroke: 0.7px #492E27; 
 
-    /* 2. Faking the Inner Shadow */
-    /* We create a dark shadow top-left, and a faint light shadow bottom-right to make it look indented/debossed */
     text-shadow: 
-        -1px -1px 2px rgba(0, 0, 0, 0.8), /* Dark top inner edge */
-        1px 1px 1px rgba(255, 255, 255, 0.15); /* Light bottom outer edge highlight */
+        -1px -1px 2px rgba(0, 0, 0, 0.8), 
+        1px 1px 1px rgba(255, 255, 255, 0.15);
 
-    /* 3. The Layer Blur */
-    /* This adds that slightly soft, gritty printed look */
     filter: blur(0.2px); 
-    
-    /* Ensuring the scaling we set up earlier stays */
-    font-size: clamp(2rem, 4vw, 3rem); 
+
+    font-size: clamp(0.3rem, 3vw, 3rem);
 }
 
 .about_usbox{
@@ -419,7 +411,7 @@ p{
         letter-spacing: 5%;
         
     }
-    .logobox, .picturebox, .playerbox, .upcommingbox {
+    .logobox, #picturebox, .playerbox, .upcommingbox {
         position: relative;
         left: unset;
         top: unset;
@@ -436,7 +428,7 @@ p{
         background-position: left;
     }
 
-    .picturebox {
+    #picturebox {
         min-height: 400px;
     }
 
