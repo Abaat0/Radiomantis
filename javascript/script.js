@@ -90,20 +90,23 @@ async function updateRadioData() {
                 tvTextDiv.textContent = formattedText;
                 
                 //pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
+                pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
+
             } else {
                 const fallbackText = `live w/ ${streamerAccount}`.toLowerCase();
                 
                 playerTextDiv.textContent = fallbackText;
                 tvTextDiv.textContent = fallbackText;
                 pictureDiv.style.backgroundImage = `url(pictures/botond.png)`; 
+                console.log(`Live streamer detected: ${streamerAccount}, but no show info found. Displaying fallback text and default image.`);
             }
 
         } else {
             // When NOBODY is live (AutoDJ is playing)
+            console.log("No live streamer detected. Displaying current song from AutoDJ.");
             playerTextDiv.textContent = currentSong.toLowerCase();
             tvTextDiv.textContent = currentSong.toLowerCase();
-            
-            pictureDiv.style.backgroundImage = `url(pictures/autodj_graphic.png)`; 
+            pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
         } 
 
     } catch (error) {
