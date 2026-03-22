@@ -103,7 +103,7 @@ async function updateRadioData() {
         } else {
             // When NOBODY is live (AutoDJ is playing)
             console.log("No live streamer detected. Displaying current song from AutoDJ.");
-            playerTextDiv.textContent = currentSong.toLowerCase();
+            playerTextDiv.textContent = "Offline playing random <br>"+currentSong.toLowerCase();
             tvTextDiv.textContent = currentSong.toLowerCase();
             pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
         } 
