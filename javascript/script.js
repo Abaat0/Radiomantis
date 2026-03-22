@@ -73,7 +73,6 @@ async function updateRadioData() {
         
         const streamerAccount = radioData.live.streamer_name; 
 
-        // Grab your HTML elements
         const playerTextDiv = document.querySelector('.infobox .playertext p');
         const tvTextDiv = document.querySelector('.insidetvbox .playertext');
         const pictureDiv = document.querySelector(".picturebox");
