@@ -89,7 +89,7 @@ async function updateRadioData() {
                 playerTextDiv.textContent = formattedText;
                 tvTextDiv.textContent = formattedText;
                 
-                pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
+                //pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
             } else {
                 const fallbackText = `live w/ ${streamerAccount}`.toLowerCase();
                 
