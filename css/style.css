@@ -33,6 +33,7 @@ p {
     width: 100%;
     min-height: 100vh; 
     padding: 45px 50px 40px 30px;
+    z-index: 2;
 }
 
 #home-view {
@@ -102,6 +103,7 @@ p {
     flex-direction: row;
     justify-content: space-between; 
     padding: 20px 60px 0px 60px;
+    z-index: 2;
     
 }
 .nav-link {
@@ -123,11 +125,29 @@ p {
     bottom: 0;
     right: 0;
     
-    z-index: -1; 
+    z-index: 1; 
     
     pointer-events: none; 
     
     width: 60vw; 
+}
+
+/* --- Subpage Modifiers --- */
+
+#info-box.subpage-box {
+    align-items: flex-start; /* Pushes the content to the left */
+    text-align: left; /* Aligns the text to the left */
+    font-size: 24px; /* Slightly smaller font since it's a paragraph, not a UI label */
+    width: 35%;
+}
+
+.subpage-box h2 {
+    
+    font-weight: 900;
+}
+
+.subpage-box p {
+    font-weight: 600;
 }
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
@@ -180,7 +200,7 @@ p {
         gap: 20px;
     }
 
-    #decorative-plant {
+    #plant {
         display: block;
         width: 150px; 
         opacity: 0.6; 
