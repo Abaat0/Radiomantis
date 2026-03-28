@@ -29,7 +29,7 @@ p{
     background-image: url('pictures/radio-mantis-bg.webp');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    margin-top: -5%;
+    margin-top: -6%;
 }
 .infobox {
     position: absolute;
@@ -66,7 +66,7 @@ p{
     top: 25%;
     width: 100%; 
     height: 30%;
-    background-image: url(pictures/botond.png);
+    background-image: url(pictures/default.jpg);
     background-repeat: no-repeat;
     background-size: 100% auto;
     background-position: center;

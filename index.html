@@ -16,16 +16,16 @@
             <div id="picturebox"></div>
             <div class="playerbox">
                 <div class="player-top-row">
-                    <button class="button" aria-label="Play/Pause"></button>
+                    <button id="play-pause-btn" class="button" aria-label="Play/Pause"></button>
                     <div class="nowplaying"><p>now playing</p></div>
                 </div>
 
                 <div class="playertext">
-                    <p>the sangwich show w/ botond</p>
+                    <p id="main-player-text">the sangwich show w/ botond</p>
                 </div>
 
                 <div class="currentshowtime">
-                    <p>12:00 - 14:00</p>
+                    <p id="main-time-text">12:00 - 14:00</p>
                 </div>
             </div>
 
@@ -44,9 +44,12 @@
             <div class="tvframe">
                 <div class="vinylbox"></div>
                 <div class="insidetvbox">
-                    <div class="tvtext"><span class="dot"></span><p>Offline  &nbsp;</p></div>
+                    <div class="tvtext">
+                        <span class="dot"></span>
+                        <p id="tv-status-text">Offline &nbsp;</p>
+                    </div>
                     <div class="playertext">
-                    <p>the sangwich show w/ botond</p>
+                        <p id="tv-player-text">the sangwich show w/ botond</p>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const playButton = document.querySelector('.button');
+    const playButton = document.getElementById('play-pause-btn');
     const audioStream = document.getElementById('radio-stream');
 
     playButton.addEventListener('click', () => {
@@ -46,22 +46,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 const showDirectory = {
-    // "azuracast_username": { dj: "DJ Name", show: "Show Name", image: "filename.png" }
+    // "azuracast_username": { host: "DJ Name", show: "Show Name", image: "filename.png" }
+    "unknown": { 
+        host: "unknown", 
+        show: "unknown", 
+        image: "default.png" 
+    },
     "sangwich_show": { 
-        dj: "botond", 
+        host: "botond", 
         show: "The Sangwich Show", 
         image: "botond.png" 
     },
     "leather_music": { 
-        dj: "swagbert", 
+        host: "swagbert", 
         show: "Leather Music", 
-        image: "swagbert.png" 
+        image: "swagbert." 
     },
     "bee_suave": { 
-        dj: "bee suave", 
-        show: "The Sangwich Show", // Whatever Bee Suave's show is called!
-        image: "beesuave.png" 
+        host: "bee suave", 
+        show: "The Sangwich Show", 
+        image: "bee\ suave.jpg" 
     }
+    
 };
 // get info from the API and update the website with it
 async function updateRadioData() {
@@ -70,42 +76,50 @@ async function updateRadioData() {
         const radioData = await response.json();
 
         const currentSong = radioData.now_playing.song.title || "Unknown Track"; 
-        
-        const streamerAccount = radioData.live.streamer_name; 
+        const currentArtist = radioData.now_playing.song.artist || "Unknown Artist"; 
+        const streamerAccount = radioData.live.streamer_name || "unknown"; 
 
-        const playerTextDiv = document.querySelector('.infobox .playertext p');
-        const tvTextDiv = document.querySelector('.insidetvbox .playertext');
-        const pictureDiv = document.querySelector(".picturebox");
+        const mainPlayerText = document.getElementById('main-player-text');
+        const tvPlayerText = document.getElementById('tv-player-text');
+        const tvStatusText = document.getElementById('tv-status-text');
+        const pictureDiv = document.getElementById('picturebox');
 
         if (radioData.live.is_live) {
             
             // Look up the account name in our dictionary
             const activeShow = showDirectory[streamerAccount];
+            tvStatusText.textContent = "Live Now    "; 
 
             if (activeShow) {
-                const formattedText = `${activeShow.show} w/ ${activeShow.dj}`.toLowerCase();
+                const formattedText = `${activeShow.show} w/ ${activeShow.host}`.toLowerCase();
                 
-                playerTextDiv.textContent = formattedText;
+                playerTextDiv = formattedText;
                 tvTextDiv.textContent = formattedText;
                 
-                //pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
-                pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
+                
+                pictureDiv.style.backgroundImage = `url(css/pictures/${activeShow.image})`;
+                //pictureDiv.style.backgroundImage = "url(css/pictures/default.jpg)";
 
-            } else {
+            }
+            // if there is no show in the dictionary 
+            else {
                 const fallbackText = `live w/ ${streamerAccount}`.toLowerCase();
                 
                 playerTextDiv.textContent = fallbackText;
                 tvTextDiv.textContent = fallbackText;
-                pictureDiv.style.backgroundImage = `url(pictures/botond.png)`; 
+                pictureDiv.style.backgroundImage = `url(css/pictures/${activeShow.image})`;
+                //pictureDiv.style.backgroundImage = `url(css/pictures/default.jpg)`; 
                 console.log(`Live streamer detected: ${streamerAccount}, but no show info found. Displaying fallback text and default image.`);
             }
 
         } else {
-            // When NOBODY is live (AutoDJ is playing)
-            console.log("No live streamer detected. Displaying current song from AutoDJ.");
-            playerTextDiv.textContent = "Offline playing random <br>"+currentSong.toLowerCase();
-            tvTextDiv.textContent = currentSong.toLowerCase();
-            pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
+            // AutoDJ Mode
+            tvStatusText.textContent = "Offline    ";
+            
+            mainPlayerText.innerHTML = `${currentSong.toLowerCase()} <br> By ${currentArtist.toLowerCase()} <br> offline playing from playlist`;
+            tvPlayerText.textContent = `${currentSong.toLowerCase()}`;
+            pictureDiv.style.backgroundImage = "url(css/pictures/default.jpg)";
+            console.log("No live streamer detected. Displaying AutoDJ info.");
         } 
 
     } catch (error) {
