@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateRadioData() {
         try {
-            const response = await fetch('https://radiomantis.com/api/nowplaying/2');
+            const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });            
             const radioData = await response.json();
 
             // Check if a DJ is actively broadcasting
