@@ -183,6 +183,6 @@ p {
     #decorative-plant {
         display: block;
         width: 150px; 
-        opacity: 0.6; /* Drops the opacity slightly so it stays a background element */
+        opacity: 0.6; 
     }
 }

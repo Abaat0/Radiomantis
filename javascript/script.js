@@ -16,37 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
             audioStream.load(); 
         }
     });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
+    // --- NEW WORK IN PROGRESS CODE ---
+    // 1. Grab every link with the 'wip-link' class
+    const wipLinks = document.querySelectorAll('.wip-link');
     
-    const aboutBtn = document.querySelector('.about_usbox');
-    const residentsBtn = document.querySelector('.residentsbox');
-    const scheduleBtn = document.querySelector('.schedulebox');
-    const donateBtn = document.querySelector('.donatebox');
-
-    const contentContainer = document.getElementById('content-container');
-    const allPanels = document.querySelectorAll('.content-panel');
-
-    function openPanel(panelId) {
-        contentContainer.classList.add('show');
-        allPanels.forEach(panel => {
-            panel.classList.remove('active');
+    // 2. Loop through each one and attach a click listener
+    wipLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            // Stop the link from actually trying to load the missing HTML page
+            event.preventDefault(); 
+            
+            // Trigger the standard browser popup
+            alert('Work in progress! Check back later.'); 
         });
-
-        document.getElementById(panelId).classList.add('active');
-        contentContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    aboutBtn.addEventListener('click', () => openPanel('about-panel'));
-    residentsBtn.addEventListener('click', () => openPanel('residents-panel'));
-    scheduleBtn.addEventListener('click', () => openPanel('schedule-panel'));
-
-    donateBtn.addEventListener('click', () => {
-        window.open('https://buymeacoffee.com/radiomantis', '_blank'); 
     });
-
 });
+
+
 const showDirectory = {
     // "azuracast_username": { host: "DJ Name", show: "Show Name", image: "filename.png" }
     "unknown": { 
