@@ -1,17 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playButton = document.getElementById('play-pause-btn');
     const audioStream = document.getElementById('radio-stream');
+    const streamUrl = audioStream.src; 
 
     playButton.addEventListener('click', () => {
         if (audioStream.paused) {
             audioStream.play();
-            playButton.classList.add('paused'); 
+            playButton.classList.add('is-playing'); 
         } else {
             audioStream.pause();
-            playButton.classList.remove('paused');
+            playButton.classList.remove('is-playing');
             
-            // Reset the source so when they hit play again, it catches up to live
-            audioStream.src = audioStream.src; 
+            audioStream.src = ''; 
+            audioStream.src = streamUrl; 
+            audioStream.load(); 
         }
     });
 });
@@ -70,6 +72,7 @@ const showDirectory = {
     
 };
 // get info from the API and update the website with it
+/*
 async function updateRadioData() {
     try {
         const response = await fetch('https://radiomantis.com/api/nowplaying/2');
@@ -129,4 +132,4 @@ async function updateRadioData() {
 
 updateRadioData();
 
-setInterval(updateRadioData, 15000);
+setInterval(updateRadioData, 15000);*/

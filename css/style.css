@@ -1,12 +1,12 @@
 :root {
-    --aspect-w: 4015;
-    --aspect-h: 2958;
-    --backgroundcolor: #33333;
+    --navtextcolor: #DB1F26;
     --bordercolor: transparent;
 }
+
 * {
     box-sizing: border-box;
 }
+
 html {
     scroll-behavior: smooth;
 }
@@ -15,438 +15,174 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden; 
-    background-image: url(pictures/background.webp);
-    background-size: cover;
-    background-attachment: fixed;
+    min-height: 100vh; 
+    background-image: url('pictures/background.webp');
+    background-size: cover; 
+    background-position: center;
+    background-attachment: fixed; 
 }
-p{
+
+p {
     margin: 0;
 }
-.frame {
-    position: relative;
-    width: 100%;
-    aspect-ratio: var(--aspect-w) / var(--aspect-h);
-    background-image: url('pictures/radio-mantis-bg.webp');
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    margin-top: -6%;
-}
-.infobox {
-    position: absolute;
+
+#app-frame {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--bordercolor);
-    left: 6%;
-    top: 13.14%;
-    width: 21.5%; 
-    height: 75%;
-    color: #6ADB7C;
-    font-family: Abel;
-    letter-spacing: 5%;
-}
-.logobox{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 0%;
-    width: 100%; 
-    height: 25%;
-    /*background-image: url(pictures/logo.png);*/
-    background-image: url(pictures//logov2.webp);
-    background-repeat: no-repeat;
-    background-size: 80% auto;
-    background-position: center;
+    justify-content: space-between; 
+    width: 100%;
+    min-height: 100vh; 
+    padding: 45px 50px 40px 30px;
 }
 
-
-#picturebox{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 25%;
-    width: 100%; 
-    height: 30%;
-    background-image: url(pictures/default.jpg);
-    background-repeat: no-repeat;
-    background-size: 100% auto;
-    background-position: center;
-}
-
-.playerbox {
-    position: absolute;
+#home-view {
     display: flex;
-    flex-direction: column; 
-    justify-content: flex-start;
-    border: 3px solid var(--backgroundcolor);
-    left: 0%;
-    top: 55%;
-    right: 10px ;
-    width: 100%; 
-    height: 22%;
-    padding-left: 10px; 
-    padding-top: 10px;
-    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: space-between; 
+    align-items: top;
+    flex-grow: 1; 
+}
 
+#brand-logo {
+    width: 50%; 
+    max-width: 600px;
+}
+
+.responsive-img {
+    width: 130%;
+    height: auto;
+    display: block;
+}
+
+#info-box {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    text-align: right; 
+    gap: 30px;
+    width: 50%;
+    border: 1px solid var(--bordercolor);
+    font-size: 35px;
+    font-family: 'Castoro';
+    letter-spacing: 15%;
+}
+.icon-button {
+    width: 60px; 
+    height: 60px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    background-image: url('../css/pictures/play.png'); 
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.1s ease-in-out;
+}
+
+.icon-button:active {
+    transform: scale(0.95);
+}
+
+.icon-button.is-playing {
+    background-image: url('../css/pictures/pause.png'); 
 }
 
 .player-top-row {
     display: flex;
-    flex-direction: row; 
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-}
-
-.button {
-    width: 25px;
-    height: 25px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    background-image: url('pictures/play.png');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    flex-shrink: 0;
-}
-
-.button.paused {
-    background-image: url('pictures/pause.png');
-}
-
-.nowplaying p {
-    font-size: clamp(0.6rem, 1vw, 1rem);
-    text-transform: uppercase;
-    opacity: 0.8;
-}
-
-.infobox .playertext p {
-    font-size: clamp(0.9rem, 1.5vw, 1.4rem);
-    font-weight: bold;
-    margin: 2px 0;
-}
-
-.currentshowtime p {
-    font-size: clamp(0.7rem, 1.2vw, 1.1rem);
-}
-.upnexttitle p, .upcommingtitle p, .upcomingtime p {
-    font-size: clamp(0.7rem, 1.2vw, 1.1rem);
-}
-.upcommingbox{
-    position: absolute;
-    flex-direction: column;
-    display: flex;
-    justify-content: flex-start;
-    left: 0%;
-    top: 77%;
-    width: 100%; 
-    height: 30%;
-    margin: 2%;
-}
-.upnexttitle{
-
-}
-.upcommingitem{
-    flex-direction: column;
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-.dresserframe{
-    position: absolute;
-    border: 3px solid var(--bordercolor);
-    left: 31.5%;
-    top: 45.5%;
-    width: 68%; 
-    height: 32%;
-    
-}
-.dresserframe p{
-    filter: blur(1.2px);
-}
-.tvframe{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 0%;
-    width: 100%; 
-    height: 82%;
-}
-.vinylbox{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 5%;
-    top: 33.9%;
-    width: 16%; 
-    height: 50%;
-}
-.insidetvbox{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 35.2%;
-    top: 23.1%;
-    width: 27.6%; 
-    height: 52.8%;
-    display: flex;
-    flex-direction: column;
-    background-image: url(data:image/png;base64,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); 
-}
-.tvtext{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 0%;
-    width: 100%; 
-    height: 20%;
-    display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: right;
-    font-family: 'Abel', sans-serif;
-    color: white;
-    -webkit-text-stroke: 0.1px black; 
-    font-size: clamp(0.5rem, 1.6vw, 1.2rem);
-}.tvtext .dot {
-    width: 12px;
-    height: 12px;
-    background-color: red;
-    border-radius: 50%;
-    margin-right: 8px;
-}
-.insidetvbox .playertext{
-    position: absolute;
-    left: 5%;
-    top: 20%;
-    width: 100%; 
-    height: 50%;
-    display: flex;
-    flex-direction: row;
-    padding-top: 10px;
-    align-items:flex-start;
-    text-transform: uppercase;
-    font-size: clamp(0.7rem, 2vw, 2.5rem); 
-    font-family: 'Abel', sans-serif;
+    justify-content: flex-end; 
+    gap: 15px;
     font-weight: 900;
-    color: white;
-    line-height: 1.1;
 }
-.menu{
-    position: absolute;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 84%;
-    width: 100%; 
-    height: 18%;
+
+#main-menu {
     display: flex;
     flex-direction: row;
-    justify-content: center;
-}
-.menu div {
-    font-family: 'Alumni Sans', sans-serif;
-    font-weight: 1000; 
-    text-transform: uppercase;
-    color: #321714; 
+    justify-content: space-between; 
+    padding: 20px 60px 0px 60px;
     
-    -webkit-text-stroke: 0.7px #492E27; 
-
-    text-shadow: 
-        -1px -1px 2px rgba(0, 0, 0, 0.8), 
-        1px 1px 1px rgba(255, 255, 255, 0.15);
-
-    filter: blur(0.2px); 
-
-    font-size: clamp(0.3rem, 3vw, 3rem);
+}
+.nav-link {
+    color: var(--navtextcolor);
+    font-size: 45px;
+    font-weight: 900;
+    text-decoration: none; 
+    font-family: 'Fraunces', serif;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: all 0.2s ease-in-out;
 }
 
-.about_usbox{
-    position: absolute;
-    flex-direction: column;
-    border: 1px solid var(--bordercolor);
-    left: 0%;
-    top: 0%;
-    width: 25%; 
-    height: 100%;
-    text-align: center;
-    justify-content: center;
-    display: flex;
-
+.nav-link:hover {
+    color: #333333;
 }
-.residentsbox{
-    position: absolute;
-    flex-direction: column;
-    border: 1px solid var(--bordercolor);
-    left: 25%;
-    top: 0%;
-    width: 25%; 
-    height: 100%;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-
-
-}
-.schedulebox{
-    position: absolute;
-    flex-direction: column;
-    border: 1px solid var(--bordercolor);
-    left: 50%;
-    top: 0%;
-    width: 25%; 
-    height: 100%;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-}
-.donatebox{
-    position: absolute;
-    flex-direction: column;
-    border: 1px solid var(--bordercolor);
-    left: 75%;
-    top: 0%;
-    width: 25%; 
-    height: 100%;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-}
-
-/* Container for the text area below the radio */
-#content-container {
-    width: 90%;
-    max-width: 1000px;
-    margin: 5% auto; 
-    padding: 20px;
-    border: 2px solid var(--bordercolor);
-    color: #6ADB7C; /* Your Radiomantis Green */
-    font-family: 'Abel', sans-serif;
-    letter-spacing: 5%;
-    aspect-ratio: var(--aspect-w) / var(--aspect-h);
-
+#plant {
+    position: fixed;
+    bottom: 0;
+    right: 0;
     
-    display: none; 
+    z-index: -1; 
+    
+    pointer-events: none; 
+    
+    width: 60vw; 
 }
-
-/* When the container is active, show it */
-#content-container.show {
-    display: block;
-}
-
-/* Hide all individual panels by default */
-.content-panel {
-    display: none;
-}
-
-/* Show only the active panel */
-.content-panel.active {
-    display: block;
-    animation: fadeIn 0.4s ease-in-out; /* Smooth little fade effect */
-}
-
-.panel-title {
-    font-family: 'Abel', sans-serif;
-    color: #6ADB7C;
-    font-size: clamp(2rem, 4vw, 3rem);
-    letter-spacing: 0em;
-    margin-top: 0;
-    text-align: left;
-    border-bottom: 1px solid var(--bordercolor);
-    padding-bottom: 10px;
-}
-
-.custom-schedule {
-    list-style-type: none;
-    padding: 0;
-    font-size: 1.2rem;
-}
-
-.custom-schedule li {
-    margin-bottom: 15px;
-    border-bottom: 1px dotted rgba(106, 219, 124, 0.3);
-    padding-bottom: 5px;
-}
-
-.custom-schedule .time {
-    font-weight: bold;
-    color: white;
-    margin-right: 15px;
-}
-
-/* Simple fade animation */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Make your menu items look clickable */
-.menu div {
-    cursor: pointer;
-}
-
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
+    
+    #app-frame {
+        padding: 20px 20px 80px 20px; 
+        justify-content: flex-start; 
+        gap: 40px;
+    }
 
-    .tvbox, .menu, .dresserframe {
-        display: none !important;
-    }
-  
-    .frame{
-        background-image: none;
-        aspect-ratio: unset;
-        margin-top: 0;
-         /* Gives some breathing room around the edges */
-        height: auto;
-        min-height: 100vh; /* Ensures the dark background covers the whole screen */
-    }
-    .infobox{
-        position: relative;
-        left: unset;
-        top: unset;
-        display: flex;
+    #home-view {
         flex-direction: column;
-        border: 1px solid var(--bordercolor);
-        width: 100%; 
-        height: auto;
-        color: #6ADB7C;
-        font-family: Abel;
-        letter-spacing: 5%;
-        
+        gap: 30px;
+        align-items: center;
     }
-    .logobox, #picturebox, .playerbox, .upcommingbox {
-        position: relative;
-        left: unset;
-        top: unset;
+
+    #info-box {
+        order: 1;
         width: 100%;
-        height: auto;
-
-    }
-    .playerbox, .upcommingbox {
-        margin-left: 10px;
-    }
-    .logobox {
-        min-height: 200px; 
-        background-size: contain;
-        background-position: left;
+        max-width: none;
+        align-items: center; 
+        text-align: center;
+        padding-top: 0;
+        border: none; 
     }
 
-    #picturebox {
-        min-height: 400px;
+    
+    .player-top-row {
+        flex-direction: row;
+        justify-content: center; 
     }
 
-    /* 6. Minor tweaks for the text boxes so they fit well */
-    .playerbox {
-        border-left: none;
-        border-right: none;
-        padding: 10px;
+    #upcoming-container {
+        display: none; 
     }
 
-    .upcommingbox {
-        margin: 0;
-        padding: 0 10px;
-    }    
-    .currentshowtime p, .upcomingtime p{
-        font-size: 1.1rem; 
+    #brand-logo {
+        order: 2; 
+        width: 80%; 
     }
-     .infobox .playertext p, .upnexttitle p, .upcommingtitle p, .upcomingtime p,.nowplaying p {
-        font-size: 1.4rem; 
+
+    .responsive-img {
+        width: 100%; 
+    }
+
+    #main-menu {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        gap: 20px;
+    }
+
+    #decorative-plant {
+        display: block;
+        width: 150px; 
+        opacity: 0.6; /* Drops the opacity slightly so it stays a background element */
     }
 }
