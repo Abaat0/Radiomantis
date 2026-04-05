@@ -132,7 +132,7 @@ p {
     width: 60vw; 
 }
 
-/* --- Subpage Modifiers --- */
+/* --- absout us ubpage Modifiers --- */
 
 #info-box.subpage-box {
     align-items: flex-start; /* Pushes the content to the left */
@@ -148,6 +148,80 @@ p {
 
 .subpage-box p {
     font-weight: 600;
+}
+
+/* --- Past Shows Modifiers --- */
+
+
+#info-box.past-shows-box {
+    align-items: flex-start; 
+    text-align: left;
+    width: 90%; 
+    
+    /* ADDED SCROLLING RULES */
+    max-height: calc(100vh - 180px); /* Calculates the exact space between the top padding and the menu */
+    overflow-y: auto; /* Turns on vertical scrolling only inside this box */
+    padding-right: 20px; /* Breathing room so the scrollbar doesn't overlap your text */
+}
+
+#info-box.past-shows-box::-webkit-scrollbar {
+    width: 6px;
+}
+#info-box.past-shows-box::-webkit-scrollbar-track {
+    background: transparent; 
+}
+#info-box.past-shows-box::-webkit-scrollbar-thumb {
+    background: #DB1F26; /* Matches your red menu links! */
+    border-radius: 10px;
+}
+
+.past-shows-box h2 {
+    font-weight: 900;
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.shows-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 30px 20px;
+    width: 100%;
+}
+
+.show-item {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none; 
+    color: inherit;
+}
+
+
+
+/* The Show Picture */
+.show-item img {
+    width: 150px;
+}
+
+/* The Show Title */
+.show-item p {
+    font-family: 'Castoro', serif;
+    font-size: 20px; /* Matches your info-box */
+    font-weight: normal; 
+    margin-top: 10px;
+    line-height: 1.1;
+    /* CSS Pro-tip: % doesn't actually work for letter-spacing in all browsers. 
+       0.15em is the correct mathematical equivalent to 15%! */
+    letter-spacing: 0.15em; 
+}
+
+/* The Date */
+.show-date {
+    font-family: 'Castoro', serif;
+    font-size: 18px; /* Slightly smaller so it doesn't fight the main title */
+    font-weight: normal;
+    margin-top: 5px;
+    letter-spacing: 0.15em;
+    opacity: 0.8;
 }
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
@@ -168,16 +242,30 @@ p {
         order: 1;
         width: 100%;
         max-width: none;
-        align-items: center; 
+        align-items: flex-start; 
         text-align: center;
         padding-top: 0;
         border: none; 
+        z-index: 2;
+
+    }
+    #player-container p {
+        font-size: 22px;
     }
 
-    
     .player-top-row {
         flex-direction: row;
-        justify-content: center; 
+        justify-content: flex-start; 
+    }
+    .player-text{
+        padding-left: 45px; 
+        
+        padding-right: 30px; 
+        
+        text-align: left;
+    }
+    .now-playing-label {
+        text-align: left;
     }
 
     #upcoming-container {
@@ -185,8 +273,10 @@ p {
     }
 
     #brand-logo {
-        order: 2; 
+        padding-top: 50px;
+        order: 0; 
         width: 80%; 
+        z-index: 2;
     }
 
     .responsive-img {
@@ -195,14 +285,43 @@ p {
 
     #main-menu {
         flex-direction: column;
-        align-items: center;
+        align-items: flex-end;
         padding: 0;
-        gap: 20px;
+        gap: 0px;
+        padding: 10px 15px 0px 10px;
+
+    }
+    
+    .nav-link {
+        font-size: 35px;
+    }
+    .icon-button {
+        width: 30px; 
+        height: 30px;
     }
 
     #plant {
-        display: block;
-        width: 150px; 
-        opacity: 0.6; 
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        transform-origin: bottom right;
+        transform: rotate(-90deg) translateX(100%);
+        width: 60vh; 
+        height: auto;
+            
     }
+    /* --- Past Shows Modifiers --- */
+    #info-box.past-shows-box {
+        width: 100%;
+        max-height: none; 
+        overflow-y: visible; 
+        padding-top: 20px;
+        padding-right: 0;
+    }
+
+    .shows-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
 }
