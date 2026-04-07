@@ -225,6 +225,12 @@ p {
 }
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
+
+    body {
+     
+        background-image: url('pictures/mobile-background\(1\).png');
+    
+    }   
     
     #app-frame {
         padding: 20px 20px 80px 20px; 
