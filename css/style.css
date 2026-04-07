@@ -135,10 +135,12 @@ p {
 /* --- absout us ubpage Modifiers --- */
 
 #info-box.subpage-box {
+    margin-left: auto;
     align-items: flex-start; /* Pushes the content to the left */
     text-align: left; /* Aligns the text to the left */
     font-size: 24px; /* Slightly smaller font since it's a paragraph, not a UI label */
     width: 35%;
+    
 }
 
 .subpage-box h2 {
