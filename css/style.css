@@ -307,14 +307,7 @@ p {
     }
 
     #plant {
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        transform-origin: bottom right;
-        transform: rotate(-90deg) translateX(100%);
-        width: 60vh; 
-        height: auto;
-            
+        display: none;     
     }
     /* --- Past Shows Modifiers --- */
     #info-box.past-shows-box {
