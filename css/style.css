@@ -402,5 +402,41 @@ p {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
     }
+    /* --- Mobile Schedule Modifiers --- */
+    
+    /* 1. Force the schedule back to a single column */
+    #schedule-container {
+        grid-template-columns: 1fr; 
+        row-gap: 30px; 
+    }
 
+    /* 2. Shrink the previous/next buttons so they fit on one line */
+    .schedule-controls {
+        font-size: 16px;
+        gap: 10px;
+        justify-content: space-between;
+    }
+    
+    .nav-btn {
+        font-size: 16px;
+    }
+
+    /* 3. Stack the time on top of the show info so it's easy to read */
+    .schedule-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 15px 0;
+    }
+
+    /* 4. Make the time pop out since it's stacked now */
+    .schedule-time {
+        min-width: unset;
+        color: var(--navtextcolor); /* Makes the time red! */
+        font-size: 20px;
+    }
+    
+    .schedule-info {
+        font-size: 20px;
+    }
 }
