@@ -158,7 +158,7 @@ p {
 #info-box.past-shows-box {
     align-items: flex-start; 
     text-align: left;
-    width: 90%; 
+    width: 100%; 
     
     /* ADDED SCROLLING RULES */
     max-height: calc(100vh - 180px); /* Calculates the exact space between the top padding and the menu */
@@ -225,6 +225,78 @@ p {
     letter-spacing: 0.15em;
     opacity: 0.8;
 }
+
+/* --- Schedule Modifiers --- */
+#schedule-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Creates two equal columns */
+    column-gap: 60px; /* Breathing room between the left and right columns */
+    row-gap: 40px; /* Vertical space between the days */
+    align-items: start; /* Prevents short days from stretching to match tall days */
+}
+.schedule-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 30px;
+    font-family: 'Castoro', serif;
+    font-size: 24px;
+    padding-bottom: 10px;
+}
+.schedule-day-group {
+    margin-bottom: 0; 
+}
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--navtextcolor);
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.nav-btn:hover {
+    transform: scale(1.05);
+    color: #333333;
+}
+
+/* Daily Schedule Group */
+.schedule-day-group {
+    margin-bottom: 40px;
+}
+
+.schedule-day-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #333333;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.schedule-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 0;
+    border-bottom: 1px dotted rgba(51, 51, 51, 0.3);
+    font-family: 'Castoro', serif;
+}
+
+.schedule-time {
+    font-size: 22px;
+    font-weight: bold;
+    min-width: 140px;
+}
+
+.schedule-info {
+    font-size: 22px;
+}
+
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
 
