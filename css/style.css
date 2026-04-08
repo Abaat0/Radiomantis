@@ -311,6 +311,12 @@ p {
     #plant {
         display: none;     
     }
+    /* --- absout us ubpage Modifiers --- */
+    #info-box.subpage-box {
+        margin-left: 0;
+        width: 90vw;
+    
+    }
     /* --- Past Shows Modifiers --- */
     #info-box.past-shows-box {
         width: 100%;
