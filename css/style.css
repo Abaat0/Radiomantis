@@ -186,7 +186,7 @@ p {
 .shows-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 30px 20px;
+    gap: 30px 620px;
     width: 100%;
 }
 
@@ -201,7 +201,7 @@ p {
 
 /* The Show Picture */
 .show-item img {
-    width: 150px;
+    width: 200px;
 }
 
 /* The Show Title */
