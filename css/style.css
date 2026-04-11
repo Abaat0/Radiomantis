@@ -392,7 +392,7 @@ p {
     }
     /* --- Past Shows Modifiers --- */
     #info-box.past-shows-box {
-        width: 100%;
+        width: 90;
         max-height: none; 
         overflow-y: visible; 
         padding-top: 20px;
