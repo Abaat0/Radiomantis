@@ -148,7 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Get string formats for matching ("Monday" and "2026-04-06")
             const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-            const dateString = currentDate.toISOString().split('T')[0]; // Gets YYYY-MM-DD
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`
 
             // Filter the master data for shows happening on this specific date
             const daysShows = masterScheduleData.filter(show => {
