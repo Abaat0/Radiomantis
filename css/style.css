@@ -98,6 +98,25 @@ p {
     font-weight: 900;
 }
 
+#social-links {
+    opacity: 0.8;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-top: -30px;
+    margin-bottom: 10px;
+}
+
+#social-links img {
+    width: 48px;
+    height: 48px;
+    transition: transform 0.2s ease-in-out;
+}
+
+#social-links img:hover {
+    transform: scale(1.1); 
+}
+
 #main-menu {
     display: flex;
     flex-direction: row;
@@ -383,6 +402,19 @@ p {
 
     #plant {
         display: none;     
+    }
+    #social-links {
+        position: fixed; /* This "pops" the icons out of the info-box completely */
+        bottom: 30px; /* Anchors them to the bottom of the phone screen */
+        left: 20px; /* Anchors them to the left side */
+        flex-direction: column; /* Stacks the icons vertically like your menu! */
+        margin-bottom: 0; 
+        z-index: 10; /* Ensures they stay clickable and float above the plant/background */
+    }
+    
+    #social-links img {
+        width: 35px;
+        height: 35px;
     }
     /* --- absout us ubpage Modifiers --- */
     #info-box.subpage-box {
