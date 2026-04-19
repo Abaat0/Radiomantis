@@ -61,7 +61,18 @@ const showDirectory = {
         dj: "bee suave", 
         show: "The Sangwich Show", // Whatever Bee Suave's show is called!
         image: "beesuave.png" 
+    },
+    "luca": { 
+        dj: "luca", 
+        show: "Siririca no Bide", // Whatever Bee Suave's show is called!
+        image: "beesuave.png" 
+    },
+     "biancah": { 
+        dj: "biancah", 
+        show: "Siririca no Bide", // Whatever Bee Suave's show is called!
+        image: "beesuave.png" 
     }
+
 };
 // get info from the API and update the website with it
 async function updateRadioData() {
