@@ -21,8 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const showDirectory = {
         "cranking_the_meatcomputer": { host: "nike pittsburgh", show: "cranking the meatcomputer" },
         "leather_music": { host: "swagbert", show: "Leather Music" },
-        "sangwich_show": { host: "bee suave", show: "The Sangwich Show" }
+        "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
+        "luca": { host: "luca", show: "siririca no bide" },
+        "bee suave": { host: "bee suave", show: "The Sangwich Show" },
+        "fodongophon": { host: "fodongophon", show: "the sunday show" },
     };
+
 
     // Schedule data
     const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
@@ -173,13 +177,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="schedule-day-group">
                         <div class="schedule-day-title">${dayName}, ${currentDate.toLocaleDateString('en-US', formatOptions)}</div>
                 `;
-
+               
                 // Add each show row
                 daysShows.forEach(show => {
+                    showhtml = '';
+                    if (show.Show != ""){
+                        showhtml = `${show.Show} w/` 
+                    };
                     dayHtml += `
                         <div class="schedule-row">
                             <div class="schedule-time">${show.Start} - ${show.End}</div>
-                            <div class="schedule-info">${show.Show} w/ ${show.DJ}</div>
+                            <div class="schedule-info">${showhtml} ${show.DJ}</div>
                         </div>
                     `;
                 });
