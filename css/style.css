@@ -179,7 +179,6 @@ p {
     text-align: left;
     width: 100%; 
     
-    /* ADDED SCROLLING RULES */
     max-height: calc(100vh - 180px); /* Calculates the exact space between the top padding and the menu */
     overflow-y: auto; /* Turns on vertical scrolling only inside this box */
     padding-right: 20px; /* Breathing room so the scrollbar doesn't overlap your text */
@@ -226,19 +225,17 @@ p {
 /* The Show Title */
 .show-item p {
     font-family: 'Castoro', serif;
-    font-size: 20px; /* Matches your info-box */
+    font-size: 20px; 
     font-weight: normal; 
     margin-top: 10px;
     line-height: 1.1;
-    /* CSS Pro-tip: % doesn't actually work for letter-spacing in all browsers. 
-       0.15em is the correct mathematical equivalent to 15%! */
     letter-spacing: 0.15em; 
 }
 
 /* The Date */
 .show-date {
     font-family: 'Castoro', serif;
-    font-size: 18px; /* Slightly smaller so it doesn't fight the main title */
+    font-size: 18px; 
     font-weight: normal;
     margin-top: 5px;
     letter-spacing: 0.15em;
@@ -249,7 +246,7 @@ p {
 #schedule-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* Creates two equal columns */
-    column-gap: 60px; /* Breathing room between the left and right columns */
+    column-gap: 60px; /* space between the left and right columns */
     row-gap: 40px; /* Vertical space between the days */
     align-items: start; /* Prevents short days from stretching to match tall days */
 }
@@ -282,7 +279,6 @@ p {
     color: #333333;
 }
 
-/* Daily Schedule Group */
 .schedule-day-group {
     margin-bottom: 40px;
 }
@@ -404,12 +400,12 @@ p {
         display: none;     
     }
     #social-links {
-        position: fixed; /* This "pops" the icons out of the info-box completely */
-        bottom: 30px; /* Anchors them to the bottom of the phone screen */
-        left: 20px; /* Anchors them to the left side */
-        flex-direction: column; /* Stacks the icons vertically like your menu! */
+        position: fixed; 
+        bottom: 30px; 
+        left: 20px; 
+        flex-direction: column; 
         margin-bottom: 0; 
-        z-index: 10; /* Ensures they stay clickable and float above the plant/background */
+        z-index: 20; 
     }
     
     #social-links img {
@@ -437,13 +433,13 @@ p {
     }
     /* --- Mobile Schedule Modifiers --- */
     
-    /* 1. Force the schedule back to a single column */
+    /* Force the schedule back to a single column */
     #schedule-container {
         grid-template-columns: 1fr; 
         row-gap: 30px; 
     }
 
-    /* 2. Shrink the previous/next buttons so they fit on one line */
+    /* Shrink the previous/next buttons so they fit on one line */
     .schedule-controls {
         font-size: 16px;
         gap: 10px;
@@ -454,7 +450,7 @@ p {
         font-size: 16px;
     }
 
-    /* 3. Stack the time on top of the show info so it's easy to read */
+    /*Stack the time on top of the show info so it's easy to read */
     .schedule-row {
         flex-direction: column;
         align-items: flex-start;
@@ -462,7 +458,7 @@ p {
         padding: 15px 0;
     }
 
-    /* 4. Make the time pop out since it's stacked now */
+    /* Make the time pop out since it's stacked now */
     .schedule-time {
         min-width: unset;
         color: var(--navtextcolor); /* Makes the time red! */
