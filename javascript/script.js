@@ -1,129 +1,229 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const playButton = document.querySelector('.button');
+
+    // ==========================================
+    // 1. DOM ELEMENTS & VARIABLES
+    // ==========================================
+    // Radio Player Elements
+    const playButton = document.getElementById('play-pause-btn');
     const audioStream = document.getElementById('radio-stream');
+    const statusLabel = document.getElementById('status-label');
+    const mainText = document.getElementById('main-player-text');
+    const wipLinks = document.querySelectorAll('.wip-link');
+    const streamUrl = audioStream?.src;
 
-    playButton.addEventListener('click', () => {
-        if (audioStream.paused) {
-            audioStream.play();
-            playButton.classList.add('paused'); 
-        } else {
-            audioStream.pause();
-            playButton.classList.remove('paused');
-            
-            // Reset the source so when they hit play again, it catches up to live
-            audioStream.src = audioStream.src; 
-        }
-    });
-});
+    // Schedule Page Elements
+    const scheduleContainer = document.getElementById('schedule-container');
+    const prevBtn = document.getElementById('prev-week-btn');
+    const nextBtn = document.getElementById('next-week-btn');
+    const weekLabel = document.getElementById('week-label');
 
-document.addEventListener('DOMContentLoaded', () => {
-    
-    const aboutBtn = document.querySelector('.about_usbox');
-    const residentsBtn = document.querySelector('.residentsbox');
-    const scheduleBtn = document.querySelector('.schedulebox');
-    const donateBtn = document.querySelector('.donatebox');
+    // AzuraCast streamer names mapped to display data
+    const showDirectory = {
+        "cranking_the_meatcomputer": { host: "nike pittsburgh", show: "cranking the meatcomputer" },
+        "leather_music": { host: "swagbert", show: "Leather Music" },
+        "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
+        "luca": { host: "luca", show: "siririca no bide" },
+        "bee suave": { host: "bee suave", show: "The Sangwich Show" },
+        "fodongophon": { host: "fodongophon", show: "the sunday show" },
+    };
 
-    const contentContainer = document.getElementById('content-container');
-    const allPanels = document.querySelectorAll('.content-panel');
 
-    function openPanel(panelId) {
-        contentContainer.classList.add('show');
-        allPanels.forEach(panel => {
-            panel.classList.remove('active');
-        });
+    // Schedule data
+    const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
+    let masterScheduleData = [];
+    let currentMonday = scheduleContainer ? getMonday(new Date()) : null;
 
-        document.getElementById(panelId).classList.add('active');
-        contentContainer.scrollIntoView({ behavior: 'smooth' });
+    // ==========================================
+    // 2. INITIALIZATION
+    // ==========================================
+    if (playButton && audioStream) {
+        initAudioPlayer();
+        updateRadioData();
+        setInterval(updateRadioData, 15000);
     }
 
-    aboutBtn.addEventListener('click', () => openPanel('about-panel'));
-    residentsBtn.addEventListener('click', () => openPanel('residents-panel'));
-    scheduleBtn.addEventListener('click', () => openPanel('schedule-panel'));
-
-    donateBtn.addEventListener('click', () => {
-        window.open('https://buymeacoffee.com/radiomantis', '_blank'); 
-    });
-
-});
-const showDirectory = {
-    // "azuracast_username": { dj: "DJ Name", show: "Show Name", image: "filename.png" }
-    "sangwich_show": { 
-        dj: "botond", 
-        show: "The Sangwich Show", 
-        image: "botond.png" 
-    },
-    "leather_music": { 
-        dj: "swagbert", 
-        show: "Leather Music", 
-        image: "swagbert.png" 
-    },
-    "bee_suave": { 
-        dj: "bee suave", 
-        show: "The Sangwich Show", // Whatever Bee Suave's show is called!
-        image: "beesuave.png" 
-    },
-    "luca": { 
-        dj: "luca", 
-        show: "Siririca no Bide", // Whatever Bee Suave's show is called!
-        image: "beesuave.png" 
-    },
-     "biancah": { 
-        dj: "biancah", 
-        show: "Siririca no Bide", // Whatever Bee Suave's show is called!
-        image: "beesuave.png" 
+    if (scheduleContainer) {
+        loadSchedule();
     }
 
-};
-// get info from the API and update the website with it
-async function updateRadioData() {
-    try {
-        const response = await fetch('https://radiomantis.com/api/nowplaying/2');
-        const radioData = await response.json();
+    // ==========================================
+    // 3. RADIO PLAYER FUNCTIONS
+    // ==========================================
 
-        const currentSong = radioData.now_playing.song.title || "Unknown Track"; 
-        
-        const streamerAccount = radioData.live.streamer_name; 
-
-        const playerTextDiv = document.querySelector('.infobox .playertext p');
-        const tvTextDiv = document.querySelector('.insidetvbox .playertext');
-        const pictureDiv = document.querySelector(".picturebox");
-
-        if (radioData.live.is_live) {
-            
-            // Look up the account name in our dictionary
-            const activeShow = showDirectory[streamerAccount];
-
-            if (activeShow) {
-                const formattedText = `${activeShow.show} w/ ${activeShow.dj}`.toLowerCase();
-                
-                playerTextDiv.textContent = formattedText;
-                tvTextDiv.textContent = formattedText;
-                
-                //pictureDiv.style.backgroundImage = `url(pictures/${activeShow.image})`;
-                pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
-
+    function initAudioPlayer() {
+        playButton.addEventListener('click', () => {
+            if (audioStream.paused) {
+                // 1. Re-attach the stream URL right BEFORE playing to guarantee the live edge
+                audioStream.src = streamUrl;
+                audioStream.load(); 
+                audioStream.play();
+                playButton.classList.add('is-playing'); 
             } else {
-                const fallbackText = `live w/ ${streamerAccount}`.toLowerCase();
+                // 2. Pause the stream
+                audioStream.pause();
+                playButton.classList.remove('is-playing');
                 
-                playerTextDiv.textContent = fallbackText;
-                tvTextDiv.textContent = fallbackText;
-                pictureDiv.style.backgroundImage = `url(pictures/botond.png)`; 
-                console.log(`Live streamer detected: ${streamerAccount}, but no show info found. Displaying fallback text and default image.`);
+                // 3. Completely wipe the source so the browser stops downloading dead data
+                audioStream.removeAttribute('src'); 
+                audioStream.load(); 
+            }
+        });
+    }
+
+    async function updateRadioData() {
+        try {
+            const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });            
+            const radioData = await response.json();
+
+            // Check if a DJ is actively broadcasting
+            if (radioData.live && radioData.live.is_live) {
+                const streamerAccount = radioData.live.streamer_name || "unknown";
+                setOnlineState(streamerAccount);
+            } else {
+                setOfflineState();
             }
 
-        } else {
-            // When NOBODY is live (AutoDJ is playing)
-            console.log("No live streamer detected. Displaying current song from AutoDJ.");
-            playerTextDiv.textContent = currentSong.toLowerCase();
-            tvTextDiv.textContent = currentSong.toLowerCase();
-            pictureDiv.style.backgroundImage = `url(pictures/pictures/botond.png)`; 
-        } 
-
-    } catch (error) {
-        console.error("Oops, couldn't fetch the radio data:", error);
+        } catch (error) {
+            console.error("Couldn't fetch radio data. Defaulting to offline.", error);
+            setOfflineState(); 
+        }
     }
-}
 
-updateRadioData();
+    function setOnlineState(streamerAccount) {
+        // Show the play button
+        playButton.style.visibility = 'visible'; 
+        statusLabel.textContent = "now playing";
 
-setInterval(updateRadioData, 15000);
+        // Look up the account name in our dictionary
+        const activeShow = showDirectory[streamerAccount];
+
+        if (activeShow) {
+            mainText.textContent = `${activeShow.show} w/ ${activeShow.host}`.toLowerCase();
+        } else {
+            // Fallback if the DJ isn't in the directory
+            mainText.textContent = `live w/ ${streamerAccount}`.toLowerCase();
+        }
+    }
+
+    function setOfflineState() {
+        // Hide the play button
+        playButton.style.visibility = 'hidden';
+        
+        // Force pause the audio if they were listening when the DJ logged off
+        if (!audioStream.paused) {
+            audioStream.pause();
+            playButton.classList.remove('is-playing');
+        }
+        
+        statusLabel.textContent = "offline";
+        mainText.textContent = "check the schedule for upcoming shows";
+    }
+
+    // ==========================================
+    // 4. SCHEDULE FUNCTIONS
+    // ==========================================
+
+    async function loadSchedule() {
+        try {
+            const response = await fetch(SHEET_URL);
+            masterScheduleData = await response.json();
+            renderWeek();
+        } catch (error) {
+            scheduleContainer.innerHTML = "<p>Couldn't load the schedule. Please try again later.</p>";
+            console.error("Schedule fetch error:", error);
+        }
+    }
+
+    function renderWeek() {
+        scheduleContainer.innerHTML = ''; // Clear out the old HTML
+        
+        // Calculate the Sunday of this week for the label
+        const currentSunday = new Date(currentMonday);
+        currentSunday.setDate(currentMonday.getDate() + 6);
+        
+        // Format label: e.g., "Apr 6 - Apr 12"
+        const formatOptions = { month: 'short', day: 'numeric' };
+        weekLabel.textContent = `${currentMonday.toLocaleDateString('en-US', formatOptions)} - ${currentSunday.toLocaleDateString('en-US', formatOptions)}`;
+
+        // Loop through 7 days of the week (0 = Monday, 6 = Sunday)
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(currentMonday);
+            currentDate.setDate(currentMonday.getDate() + i);
+            
+            // Get string formats for matching ("Monday" and "2026-04-06")
+            const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`
+
+            // Filter the master data for shows happening on this specific date
+            const daysShows = masterScheduleData.filter(show => {
+                // Rule 1: Does it have a specific Date that matches today?
+                if (show.Date && show.Date === dateString) return true;
+                // Rule 2: Does it have NO specific date, but the Day matches?
+                if ((!show.Date || show.Date.trim() === "") && show.Day === dayName) return true;
+                return false;
+            });
+
+            // If there are shows today, sort them by start time and build the HTML
+            if (daysShows.length > 0) {
+                
+                // Sort by start time (e.g., "12:00" comes before "16:00")
+                daysShows.sort((a, b) => a.Start.localeCompare(b.Start));
+
+                // Create the Day Header
+                let dayHtml = `
+                    <div class="schedule-day-group">
+                        <div class="schedule-day-title">${dayName}, ${currentDate.toLocaleDateString('en-US', formatOptions)}</div>
+                `;
+               
+                // Add each show row
+                daysShows.forEach(show => {
+                    dayHtml += `
+                        <div class="schedule-row">
+                            <div class="schedule-time">${show.Start} - ${show.End}</div>
+                            <div class="schedule-info">${show.Show ? `${show.Show} w/ ` : ''}${show.DJ}</div>
+                        </div>
+                    `;
+                });
+
+                dayHtml += `</div>`; // Close the group
+                scheduleContainer.insertAdjacentHTML('beforeend', dayHtml);
+            }
+        }
+        
+        // If the entire week is completely empty
+        if (scheduleContainer.innerHTML === '') {
+            scheduleContainer.innerHTML = '<p style="font-size: 24px; text-align: center; margin-top: 40px;">No shows scheduled for this week.</p>';
+        }
+    }
+
+    // Button Listeners for Time Travel
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentMonday.setDate(currentMonday.getDate() - 7);
+            renderWeek();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentMonday.setDate(currentMonday.getDate() + 7);
+            renderWeek();
+        });
+    }
+
+    // ==========================================
+    // 5. UTILITY FUNCTIONS
+    // ==========================================
+
+    // Find the Monday of whatever Date is passed to it
+    function getMonday(d) {
+        d = new Date(d);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
+
+});
