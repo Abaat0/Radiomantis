@@ -180,14 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
                
                 // Add each show row
                 daysShows.forEach(show => {
-                    showhtml = '';
-                    if (show.Show != ""){
-                        showhtml = `${show.Show} w/` 
-                    };
                     dayHtml += `
                         <div class="schedule-row">
                             <div class="schedule-time">${show.Start} - ${show.End}</div>
-                            <div class="schedule-info">${showhtml} ${show.DJ}</div>
+                            <div class="schedule-info">${show.Show ? `${show.Show} w/ ` : ''}${show.DJ}</div>
                         </div>
                     `;
                 });
