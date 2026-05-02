@@ -385,7 +385,8 @@ p {
         padding: 0;
         gap: 0px;
         padding: 10px 15px 0px 10px;
-
+        align-self: flex-end;
+    
     }
     
     .nav-link {
@@ -420,7 +421,7 @@ p {
     }
     /* --- Past Shows Modifiers --- */
     #info-box.past-shows-box {
-        width: 90;
+        width: 90vw;
         max-height: none; 
         overflow-y: visible; 
         padding-top: 20px;
