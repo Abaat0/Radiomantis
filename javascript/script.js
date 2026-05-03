@@ -225,5 +225,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
     }
+ 
+    // ==========================================
+    // 6. NAVIGATION
+    // ==========================================
 
+    initLinks();
+    window.addEventListener("popstate", loadPage);
+
+    async function loadPage() {
+        const newDocument = await new Promise((res, rej) => {
+            const req = new XMLHttpRequest();
+            req.open("GET", window.location.href);
+            req.responseType = "document";
+            req.onreadystatechange = () => {
+                if (req.readyState !== XMLHttpRequest.DONE) return;
+                if (req.status < 200 || 300 <= req.status) {
+                    history.go();
+                    rej();
+                }
+                res(req.responseXML);
+            };
+            req.send();
+        });
+        const newFrame = newDocument.querySelector("#app-frame");
+        if (newFrame === null) {
+            history.go();
+            return;
+        }
+        const oldFrame = document.querySelector("#app-frame");
+        oldFrame.replaceWith(newFrame);
+        document.title = newDocument.title;
+        // todo: run init js
+        initLinks();
+    }
+
+    function initLinks() {
+        document.querySelectorAll('a[href^="/"]').forEach((link) => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                history.pushState(null, "", link.href);
+                loadPage();
+            });
+        });
+    }
 });
