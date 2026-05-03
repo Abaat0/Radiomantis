@@ -64,7 +64,7 @@ p {
     gap: 30px;
     width: 50%;
     border: 1px solid var(--bordercolor);
-    font-size: 35px;
+    font-size: 2.25rem;
     font-family: 'Castoro';
     letter-spacing: 15%;
 }
@@ -127,7 +127,7 @@ p {
 }
 .nav-link {
     color: var(--navtextcolor);
-    font-size: 45px;
+    font-size: 2.8rem;
     font-weight: 900;
     text-decoration: none; 
     font-family: 'Fraunces', serif;
@@ -155,9 +155,9 @@ p {
 
 #info-box.subpage-box {
     margin-left: auto;
-    align-items: flex-start; /* Pushes the content to the left */
-    text-align: left; /* Aligns the text to the left */
-    font-size: 24px; /* Slightly smaller font since it's a paragraph, not a UI label */
+    align-items: flex-start; 
+    text-align: left; 
+    font-size: 1.5rem; /* Slightly smaller font since it's a paragraph, not a UI label */
     width: 35%;
     
 }
@@ -179,9 +179,9 @@ p {
     text-align: left;
     width: 100%; 
     
-    max-height: calc(100vh - 180px); /* Calculates the exact space between the top padding and the menu */
-    overflow-y: auto; /* Turns on vertical scrolling only inside this box */
-    padding-right: 20px; /* Breathing room so the scrollbar doesn't overlap your text */
+    max-height: calc(100vh - 180px); 
+    overflow-y: auto; 
+    padding-right: 20px; 
 }
 
 #info-box.past-shows-box::-webkit-scrollbar {
@@ -191,13 +191,13 @@ p {
     background: transparent; 
 }
 #info-box.past-shows-box::-webkit-scrollbar-thumb {
-    background: #DB1F26; /* Matches your red menu links! */
+    background: #DB1F26; 
     border-radius: 10px;
 }
 
 .past-shows-box h2 {
     font-weight: 900;
-    font-size: 40px;
+    font-size: 2.5rem;
     margin-bottom: 20px;
 }
 
@@ -225,7 +225,7 @@ p {
 /* The Show Title */
 .show-item p {
     font-family: 'Castoro', serif;
-    font-size: 20px; 
+    font-size: 1.25rem;
     font-weight: normal; 
     margin-top: 10px;
     line-height: 1.1;
@@ -235,7 +235,7 @@ p {
 /* The Date */
 .show-date {
     font-family: 'Castoro', serif;
-    font-size: 18px; 
+    font-size: 1.25rem;
     font-weight: normal;
     margin-top: 5px;
     letter-spacing: 0.15em;
@@ -245,9 +245,9 @@ p {
 /* --- Schedule Modifiers --- */
 #schedule-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Creates two equal columns */
-    column-gap: 60px; /* space between the left and right columns */
-    row-gap: 40px; /* Vertical space between the days */
+    grid-template-columns: repeat(2, 1fr); 
+    column-gap: 60px; 
+    row-gap: 40px; 
     align-items: start; /* Prevents short days from stretching to match tall days */
 }
 .schedule-controls {
@@ -257,7 +257,7 @@ p {
     width: 100%;
     margin-bottom: 30px;
     font-family: 'Castoro', serif;
-    font-size: 24px;
+    font-size: 1.5rem;
     padding-bottom: 10px;
 }
 .schedule-day-group {
@@ -268,7 +268,7 @@ p {
     border: none;
     color: var(--navtextcolor);
     font-family: 'Fraunces', serif;
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: 900;
     cursor: pointer;
     transition: transform 0.1s ease;
@@ -285,7 +285,7 @@ p {
 
 .schedule-day-title {
     font-family: 'Fraunces', serif;
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: 900;
     color: #333333;
     margin-bottom: 15px;
@@ -303,13 +303,13 @@ p {
 }
 
 .schedule-time {
-    font-size: 22px;
+    font-size: 1.375rem;
     font-weight: bold;
     min-width: 140px;
 }
 
 .schedule-info {
-    font-size: 22px;
+    font-size: 1.375rem;
 }
 
 /*Overwrites anything above if the width is less thant x*/
@@ -345,7 +345,7 @@ p {
 
     }
     #player-container p {
-        font-size: 22px;
+        font-size: 1.375rem;
     }
 
     .player-top-row {
@@ -390,7 +390,7 @@ p {
     }
     
     .nav-link {
-        font-size: 35px;
+        font-size: 2.2rem;
     }
     .icon-button {
         width: 30px; 
@@ -442,13 +442,13 @@ p {
 
     /* Shrink the previous/next buttons so they fit on one line */
     .schedule-controls {
-        font-size: 16px;
+        font-size: 1rem;
         gap: 10px;
         justify-content: space-between;
     }
     
     .nav-btn {
-        font-size: 16px;
+        font-size: 1rem;
     }
 
     /*Stack the time on top of the show info so it's easy to read */
@@ -462,11 +462,11 @@ p {
     /* Make the time pop out since it's stacked now */
     .schedule-time {
         min-width: unset;
-        color: var(--navtextcolor); /* Makes the time red! */
-        font-size: 20px;
+        color: var(--navtextcolor); 
+        font-size: 1.25rem;
     }
     
     .schedule-info {
-        font-size: 20px;
+        font-size: 1.25rem;
     }
 }
