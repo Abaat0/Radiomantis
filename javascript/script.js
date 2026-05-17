@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
         "luca": { host: "luca", show: "siririca no bide" },
         "bee suave": { host: "bee suave", show: "The Sangwich Show" },
-        "fodongophon": { host: "fodongophon", show: "the sunday show" },
+        "fodongophon": { host: "fodongophon", show: "Kraüt & Ruben " },
     };
 
 
