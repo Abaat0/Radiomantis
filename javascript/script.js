@@ -1,49 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
-    // 1. DOM ELEMENTS & VARIABLES
+    // 1. CONSTANTS & GLOBAL STATE
     // ==========================================
-    // Radio Player Elements
-    const playButton = document.getElementById('play-pause-btn');
-    const audioStream = document.getElementById('radio-stream');
-    const statusLabel = document.getElementById('status-label');
-    const mainText = document.getElementById('main-player-text');
-    const wipLinks = document.querySelectorAll('.wip-link');
-    const streamUrl = audioStream?.src;
-
-    // Schedule Page Elements
-    const scheduleContainer = document.getElementById('schedule-container');
-    const prevBtn = document.getElementById('prev-week-btn');
-    const nextBtn = document.getElementById('next-week-btn');
-    const weekLabel = document.getElementById('week-label');
-
     // AzuraCast streamer names mapped to display data
-    const showDirectory = {
+    const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
+    const SHOW_DIRECTORY = {
         "cranking_the_meatcomputer": { host: "nike pittsburgh", show: "cranking the meatcomputer" },
         "leather_music": { host: "swagbert", show: "Leather Music" },
         "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
         "luca": { host: "luca", show: "siririca no bide" },
         "bee suave": { host: "bee suave", show: "The Sangwich Show" },
-        "fodongophon": { host: "fodongophon", show: "Kraüt & Ruben " },
+        "fodongophon": { host: "fodongophon", show: "Kraüt & Ruben" },
+        "splenda": { host: "splenda", show: "wyd" },
     };
-
-
-    // Schedule data
-    const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
+    
     let masterScheduleData = [];
-    let currentMonday = scheduleContainer ? getMonday(new Date()) : null;
+    let currentMonday;
+    
 
     // ==========================================
     // 2. INITIALIZATION
     // ==========================================
-    if (playButton && audioStream) {
+
+    init();
+    setInterval(updateRadioData, 15000);
+
+    function init() {
+        initLinks();
         initAudioPlayer();
         updateRadioData();
-        setInterval(updateRadioData, 15000);
-    }
-
-    if (scheduleContainer) {
-        loadSchedule();
+        initSchedule();
     }
 
     // ==========================================
@@ -51,26 +38,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     function initAudioPlayer() {
+        const playButton = document.getElementById('play-pause-btn');
+        const audioStream = document.getElementById('radio-stream');
+        if (!playButton || !audioStream) return;
+        const streamUrl = audioStream.src;
+
+        playButton.classList.toggle('is-playing', !audioStream.paused);
+        
         playButton.addEventListener('click', () => {
             if (audioStream.paused) {
                 // 1. Re-attach the stream URL right BEFORE playing to guarantee the live edge
                 audioStream.src = streamUrl;
                 audioStream.load(); 
                 audioStream.play();
-                playButton.classList.add('is-playing'); 
             } else {
                 // 2. Pause the stream
                 audioStream.pause();
-                playButton.classList.remove('is-playing');
                 
                 // 3. Completely wipe the source so the browser stops downloading dead data
                 audioStream.removeAttribute('src'); 
                 audioStream.load(); 
             }
+            playButton.classList.toggle('is-playing', !audioStream.paused);
         });
     }
 
     async function updateRadioData() {
+        if (!document.getElementById('play-pause-btn')) return;
         try {
             const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });            
             const radioData = await response.json();
@@ -90,12 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setOnlineState(streamerAccount) {
+        const playButton = document.getElementById('play-pause-btn');
+        const statusLabel = document.getElementById('status-label');
+        const mainText = document.getElementById('main-player-text');
+        if (!playButton || !statusLabel || !mainText) return;
+
         // Show the play button
         playButton.style.visibility = 'visible'; 
         statusLabel.textContent = "now playing";
 
         // Look up the account name in our dictionary
-        const activeShow = showDirectory[streamerAccount];
+        const activeShow = SHOW_DIRECTORY[streamerAccount];
 
         if (activeShow) {
             mainText.textContent = `${activeShow.show} w/ ${activeShow.host}`.toLowerCase();
@@ -106,6 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setOfflineState() {
+        const playButton = document.getElementById('play-pause-btn');
+        const audioStream = document.getElementById('radio-stream');
+        const statusLabel = document.getElementById('status-label');
+        const mainText = document.getElementById('main-player-text');
+        if (!playButton || !audioStream || !statusLabel || !mainText) return;
+
         // Hide the play button
         playButton.style.visibility = 'hidden';
         
@@ -123,7 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. SCHEDULE FUNCTIONS
     // ==========================================
 
+    function initSchedule() {
+        if (!document.getElementById('schedule-container')) return;
+
+        currentMonday = getMonday(new Date());
+
+        loadSchedule();
+        
+        // Button Listeners for Time Travel
+        const prevBtn = document.getElementById('prev-week-btn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentMonday.setDate(currentMonday.getDate() - 7);
+                renderWeek();
+            });
+        }
+
+        const nextBtn = document.getElementById('next-week-btn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                currentMonday.setDate(currentMonday.getDate() + 7);
+                renderWeek();
+            });
+        }
+    }
+
     async function loadSchedule() {
+        const scheduleContainer = document.getElementById('schedule-container');
+        if (!scheduleContainer) return;
+
         try {
             const response = await fetch(SHEET_URL);
             masterScheduleData = await response.json();
@@ -135,6 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderWeek() {
+        const scheduleContainer = document.getElementById('schedule-container');
+        const weekLabel = document.getElementById('week-label');
+        if (!scheduleContainer || !weekLabel) return;
+
         scheduleContainer.innerHTML = ''; // Clear out the old HTML
         
         // Calculate the Sunday of this week for the label
@@ -199,21 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Button Listeners for Time Travel
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            currentMonday.setDate(currentMonday.getDate() - 7);
-            renderWeek();
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentMonday.setDate(currentMonday.getDate() + 7);
-            renderWeek();
-        });
-    }
-
     // ==========================================
     // 5. UTILITY FUNCTIONS
     // ==========================================
@@ -225,5 +247,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
     }
+ 
+    // ==========================================
+    // 6. NAVIGATION
+    // ==========================================
 
+    window.addEventListener("popstate", loadPage);
+
+    async function loadPage() {
+        const newDocument = await new Promise((res, rej) => {
+            const req = new XMLHttpRequest();
+            req.open("GET", window.location.href);
+            req.responseType = "document";
+            req.onreadystatechange = () => {
+                if (req.readyState !== XMLHttpRequest.DONE) return;
+                if (req.status < 200 || 300 <= req.status) {
+                    history.go();
+                    rej();
+                }
+                res(req.responseXML);
+            };
+            req.send();
+        });
+        const newFrame = newDocument.querySelector("#app-frame");
+        if (newFrame === null) {
+            history.go();
+            return;
+        }
+        const oldFrame = document.querySelector("#app-frame");
+        oldFrame.replaceWith(newFrame);
+        document.title = newDocument.title;
+        init();
+    }
+
+    function initLinks() {
+        document.querySelectorAll('a[href^="/"]').forEach((link) => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                history.pushState(null, "", link.href);
+                loadPage();
+            });
+        });
+    }
 });
