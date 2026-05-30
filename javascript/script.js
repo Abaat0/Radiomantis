@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mainText.textContent = `${activeShow.show} w/ ${activeShow.host}`.toLowerCase();
         } else {
             // Fallback if the DJ isn't in the directory
-            mainText.textContent = `live w/ ${streamerAccount}`.toLowerCase();
+            mainText.textContent = `${streamerAccount}`.toLowerCase();
         }
     }
 
