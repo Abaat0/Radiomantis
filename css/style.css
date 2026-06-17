@@ -206,6 +206,7 @@ p {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 30px 50px;
     width: 100%;
+    z-index: 2;
 }
 
 .show-item {
