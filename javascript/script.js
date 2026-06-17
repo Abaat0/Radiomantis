@@ -290,8 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return; 
 
         try {
-            
-            const response = await fetch('https://api.mixcloud.com/radiomantis/cloudcasts/');
+            // limited to 200 most recent this can be upped though
+            const response = await fetch('https://api.mixcloud.com/radiomantis/cloudcasts/?limit=200');
             const mixcloudData = await response.json();
 
             container.innerHTML = ''; 
