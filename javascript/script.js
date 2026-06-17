@@ -306,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 const imageUrl = show.pictures.large;
-
+                //removes date from the end if there
+                show.name = show.name.split(' - ')[0]
                 // Build the HTML for the specific show
                 const showHtml = `
                     <a href="${show.url}" target="_blank" class="show-item">
