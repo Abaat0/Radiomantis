@@ -180,7 +180,8 @@ p {
     width: 100%; 
     
     max-height: calc(100vh - 180px); 
-    overflow-y: auto; 
+    overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 20px; 
 }
 
@@ -220,7 +221,10 @@ p {
 
 /* The Show Picture */
 .show-item img {
-    width: 200px;
+    width: 100%; 
+    height: auto;
+    aspect-ratio: 1 / 1; 
+    object-fit: cover;
 }
 
 /* The Show Title */
