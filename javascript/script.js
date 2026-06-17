@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initAudioPlayer();
         updateRadioData();
         initSchedule();
+        loadPastShows();
     }
 
     // ==========================================
@@ -135,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         loadSchedule();
         
-        // Button Listeners for Time Travel
         const prevBtn = document.getElementById('prev-week-btn');
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
@@ -278,6 +278,51 @@ document.addEventListener('DOMContentLoaded', () => {
         oldFrame.replaceWith(newFrame);
         document.title = newDocument.title;
         init();
+    }
+
+    // ==========================================
+    // 7. PAST SHOWS (MIXCLOUD API)
+    // ==========================================
+
+    async function loadPastShows() {
+        const container = document.getElementById('past-shows-container');
+        // Only run if we are on the past shows page
+        if (!container) return; 
+
+        try {
+            
+            const response = await fetch('https://api.mixcloud.com/radiomantis/cloudcasts/');
+            const mixcloudData = await response.json();
+
+            container.innerHTML = ''; 
+
+            // Loop through the shows Mixcloud gives us
+            mixcloudData.data.forEach(show => {
+                
+                // Format the date 
+                const showDate = new Date(show.created_time);
+                const formattedDate = showDate.toLocaleDateString('en-US', { 
+                    month: 'long', day: 'numeric', year: 'numeric' 
+                });
+
+                const imageUrl = show.pictures.large;
+
+                // Build the HTML for the specific show
+                const showHtml = `
+                    <a href="${show.url}" target="_blank" class="show-item">
+                        <img src="${imageUrl}" alt="${show.name}">
+                        <p>${show.name}</p>
+                        <span class="show-date">${formattedDate}</span>
+                    </a>
+                `;
+
+                container.insertAdjacentHTML('beforeend', showHtml);
+            });
+
+        } catch (error) {
+            console.error("Couldn't fetch past shows from Mixcloud:", error);
+            container.innerHTML = "<p>Couldn't load past shows. Please check our Mixcloud page directly.</p>";
+        }
     }
 
     function initLinks() {
