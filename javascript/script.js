@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initLinks();
         initAudioPlayer();
         updateRadioData();
+        loadGlobalSchedule();
         initSchedule();
         loadPastShows();
     }
@@ -75,7 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const streamerAccount = radioData.live.streamer_name || "unknown";
                 setOnlineState(streamerAccount);
             } else {
-                setOfflineState();
+                if (shouldBeWaiting()) {
+                    setStandbyState();
+                } else {
+                    setOfflineState();
+                }
             }
 
         } catch (error) {
@@ -90,11 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainText = document.getElementById('main-player-text');
         if (!playButton || !statusLabel || !mainText) return;
 
-        // Show the play button
         playButton.style.visibility = 'visible'; 
         statusLabel.textContent = "now playing";
 
-        // Look up the account name in our dictionary
         const activeShow = SHOW_DIRECTORY[streamerAccount];
 
         if (activeShow) {
@@ -112,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainText = document.getElementById('main-player-text');
         if (!playButton || !audioStream || !statusLabel || !mainText) return;
 
-        // Hide the play button
         playButton.style.visibility = 'hidden';
         
         // Force pause the audio if they were listening when the DJ logged off
@@ -125,16 +127,39 @@ document.addEventListener('DOMContentLoaded', () => {
         mainText.textContent = "check the schedule for upcoming shows";
     }
 
+    function setStandbyState() {
+        const playButton = document.getElementById('play-pause-btn');
+        const statusLabel = document.getElementById('status-label');
+        const mainText = document.getElementById('main-player-text');
+        if (!playButton || !statusLabel || !mainText) return;
+
+        playButton.style.visibility = 'visible'; 
+        
+        statusLabel.textContent = "standby";
+        mainText.textContent = "new set starting soon...";
+    }
+
     // ==========================================
     // 4. SCHEDULE FUNCTIONS
     // ==========================================
+    async function loadGlobalSchedule() {
+        try {
+            const response = await fetch(SHEET_URL);
+            masterScheduleData = await response.json();
+            
+            // If they happen to be on the schedule page, draw it now that we have data
+            if (document.getElementById('schedule-container')) {
+                renderWeek();
+            }
+        } catch (error) {
+            console.error("Schedule fetch error:", error);
+        }
+    }
 
     function initSchedule() {
         if (!document.getElementById('schedule-container')) return;
 
         currentMonday = getMonday(new Date());
-
-        loadSchedule();
         
         const prevBtn = document.getElementById('prev-week-btn');
         if (prevBtn) {
@@ -246,6 +271,65 @@ document.addEventListener('DOMContentLoaded', () => {
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
+    }
+function shouldBeWaiting() {
+        if (!masterScheduleData || masterScheduleData.length === 0) return false;
+
+        const localTimeStr = new Date().toLocaleString("en-US", {timeZone: "Europe/Copenhagen"});
+        const now = new Date(localTimeStr);
+        
+        const currentDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+        
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const yesterdayName = yesterday.toLocaleDateString('en-US', { weekday: 'long' });
+        
+        const dateStringToday = now.toISOString().split('T')[0];
+        const dateStringYesterday = yesterday.toISOString().split('T')[0];
+
+        for (let show of masterScheduleData) {
+            if (!show.Start || !show.End) continue;
+
+            let showDateObj = null;
+
+            if ((show.Date && show.Date === dateStringToday) || 
+                ((!show.Date || show.Date.trim() === "") && show.Day === currentDayName)) {
+                showDateObj = new Date(now); // Base it on today
+            } 
+            else if ((show.Date && show.Date === dateStringYesterday) || 
+                     ((!show.Date || show.Date.trim() === "") && show.Day === yesterdayName)) {
+                showDateObj = new Date(yesterday); // Base it on yesterday
+            }
+
+            if (showDateObj) {
+                const [startH, startM] = show.Start.split(':').map(Number);
+                let [endH, endM] = show.End.split(':').map(Number);
+                
+                const startTime = new Date(showDateObj);
+                startTime.setHours(startH, startM, 0, 0);
+
+                const endTime = new Date(showDateObj);
+                if (endH === 0 && endM === 0) {
+                    endTime.setDate(endTime.getDate() + 1);
+                } else {
+                    endTime.setHours(endH, endM, 0, 0);
+                }
+                const minsUntilStart = (startTime - now) / (1000 * 60);
+                const minsSinceEnd = (now - endTime) / (1000 * 60);
+
+                const isDuringShow = now >= startTime && now <= endTime;
+                
+                const isStartingSoon = minsUntilStart <= 15 && minsUntilStart > 0;
+
+                const justEnded = minsSinceEnd <= 15 && minsSinceEnd >= 0;
+
+                if (isDuringShow || isStartingSoon || justEnded) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
  
     // ==========================================
