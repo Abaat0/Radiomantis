@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Build the HTML for the specific show
                 const showHtml = `
                     <a href="${show.url}" target="_blank" class="show-item">
-                        <img src="${imageUrl}" alt="${show.name}">
+                        <img src="${imageUrl}" alt="${show.name}" loading="lazy">
                         <p>${show.name}</p>
                         <span class="show-date">${formattedDate}</span>
                     </a>
