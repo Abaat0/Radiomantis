@@ -185,16 +185,6 @@ p {
     padding-right: 20px; 
 }
 
-#info-box.past-shows-box::-webkit-scrollbar {
-    width: 6px;
-}
-#info-box.past-shows-box::-webkit-scrollbar-track {
-    background: transparent; 
-}
-#info-box.past-shows-box::-webkit-scrollbar-thumb {
-    background: #DB1F26; 
-    border-radius: 10px;
-}
 
 .past-shows-box h2 {
     font-weight: 900;
