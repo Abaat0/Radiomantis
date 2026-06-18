@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: activeShow ? activeShow.show : streamerAccount,
                 artist: activeShow ? activeShow.host : "Radiomantis",
                 artwork: [
-                    { src: 'css/pictures/logov2.webp', sizes: '512x512', type: 'image/webp' }
+                    { src: 'css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/webp' }
                 ]
             });
         }

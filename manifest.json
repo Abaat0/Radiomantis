@@ -15,6 +15,13 @@
         "src": "css/pictures/app-icon.png",
         "sizes": "512x512",
         "type": "image/png"
+      },
+      {
+      "src": "css/pictures/maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
       }
     ]
+
 }
