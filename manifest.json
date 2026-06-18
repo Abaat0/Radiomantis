@@ -6,10 +6,15 @@
   "background_color": "#82E6A2",
   "theme_color": "#82E6A2",
   "icons": [
-    {
-      "src": "css/pictures/logov2.webp",
-      "sizes": "192x192",
-      "type": "image/webp"
-    }
-  ]
+      {
+        "src": "css/pictures/app-icon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "css/pictures/app-icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
 }
