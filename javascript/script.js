@@ -106,6 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fallback if the DJ isn't in the directory
             mainText.textContent = `${streamerAccount}`.toLowerCase();
         }
+        // add the player info to lock screen
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: activeShow ? activeShow.show : streamerAccount,
+                artist: activeShow ? activeShow.host : "Radiomantis",
+                artwork: [
+                    { src: 'css/pictures/logov2.webp', sizes: '512x512', type: 'image/webp' }
+                ]
+            });
+        }
     }
 
     function setOfflineState() {
