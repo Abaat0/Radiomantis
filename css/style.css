@@ -317,7 +317,10 @@ p {
     }   
     
     #app-frame {
-        padding: 20px 20px 80px 20px; 
+        padding-top: calc(20px + env(safe-area-inset-top)); 
+        padding-bottom: 80px;
+        padding-left: 20px;
+        padding-right: 20px;
         justify-content: flex-start; 
         gap: 40px;
     }

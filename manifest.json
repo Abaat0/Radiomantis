@@ -1,0 +1,15 @@
+{
+  "name": "Radiomantis",
+  "short_name": "Radiomantis",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#82E6A2",
+  "theme_color": "#82E6A2",
+  "icons": [
+    {
+      "src": "css/pictures/logov2.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    }
+  ]
+}
