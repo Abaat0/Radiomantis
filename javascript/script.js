@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "leather_music": { host: "swagbert", show: "Leather Music" },
         "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
         "luca": { host: "luca", show: "siririca no bide" },
-        "bee suave": { host: "bee suave", show: "The Sangwich Show" },
+        "bee suave": { host: "bee suave", show: "The Sangwich Special" },
         "fodongophon": { host: "fodongophon", show: "Kraüt & Ruben" },
         "splenda": { host: "splenda", show: "wyd" },
     };
