@@ -3,8 +3,8 @@
   "short_name": "Radiomantis",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#82E6A2",
-  "theme_color": "#82E6A2",
+  "background_color": "#c8e476",
+  "theme_color": "#c8e476",
   "icons": [
       {
         "src": "css/pictures/app-icon.png",

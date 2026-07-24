@@ -23,12 +23,12 @@ html {
 body {
     margin: 0;
     padding: 0;
-    overflow-x: hidden; 
-    min-height: 100vh; 
+    overflow-x: hidden;
+    min-height: 100vh;
     background-image: url('pictures/background.webp');
-    background-size: cover; 
+    background-size: cover;
     background-position: center;
-    background-attachment: fixed; 
+    background-attachment: fixed;
 }
 
 p {
