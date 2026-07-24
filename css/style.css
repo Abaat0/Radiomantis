@@ -8,7 +8,7 @@
     --fs-nav:     clamp(1.6rem, 0.2rem + 2.3vw, 3.6rem);   /* main menu links */
     --fs-player:  clamp(1.35rem, 0.8rem + 1.8vw, 2.5rem);  /* now-playing text */
     --fs-heading: clamp(1.8rem, 1rem + 2.2vw, 3rem);       /* page <h2> titles */
-    --fs-body: clamp(0.875rem, 0.2rem + 0.95vw, 1.375rem); /* about paragraph */
+    --fs-body:    clamp(0.875rem, 0.2rem + 0.95vw, 1.375rem); /* about paragraph */
     --fs-card:    clamp(1rem, 0.9rem + 0.5vw, 1.3rem);     /* card + schedule text */
 }
 
