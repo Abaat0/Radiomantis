@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
         "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
         "luca": { host: "luca", show: "siririca no bide" },
         "bee suave": { host: "bee suave", show: "The Sangwich Show" },
-        "fodongophon": { host: "fodongophon", show: "Kraüt & Ruben" },
+        "fodongophon": { host: "fodongophon", show: "TRS" },
         "splenda": { host: "splenda", show: "wyd" },
+        "splenda": { host: "sideroom", show: "In too deep" },
     };
     
     let masterScheduleData = [];
@@ -392,22 +393,19 @@ function shouldBeWaiting() {
 
             // Loop through the shows Mixcloud gives us
             mixcloudData.data.forEach(show => {
-                
-                // Format the date 
-                const showDate = new Date(show.created_time);
-                const formattedDate = showDate.toLocaleDateString('en-US', { 
-                    month: 'long', day: 'numeric', year: 'numeric' 
-                });
 
                 const imageUrl = show.pictures.large;
                 //removes date from the end if there
-                show.name = show.name.split(' - ')[0]
+                showName = show.name.split(' - ')[0]
+                showDate = show.name.split(' - ')[1]
+                
+                
                 // Build the HTML for the specific show
                 const showHtml = `
                     <a href="${show.url}" target="_blank" class="show-item">
-                        <img src="${imageUrl}" alt="${show.name}" loading="lazy">
-                        <p>${show.name}</p>
-                        <span class="show-date">${formattedDate}</span>
+                        <img src="${imageUrl}" alt="${showName}" loading="lazy">
+                        <p>${showName}</p>
+                        <span class="show-date">${showDate}</span>
                     </a>
                 `;
 
