@@ -3,19 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 1. CONSTANTS & GLOBAL STATE
     // ==========================================
-    // AzuraCast streamer names mapped to display data
+    // The Google Doc schedule is the single source of truth for show/DJ names.
     const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
-    const SHOW_DIRECTORY = {
-        "cranking_the_meatcomputer": { host: "nike pittsburgh", show: "cranking the meatcomputer" },
-        "leather_music": { host: "swagbert", show: "Leather Music" },
-        "sangwich_show": { host: "bee suave", show: "The Sangwich Show" },
-        "luca": { host: "luca", show: "siririca no bide" },
-        "bee suave": { host: "bee suave", show: "The Sangwich Show" },
-        "fodongophon": { host: "fodongophon", show: "TRS" },
-        "splenda": { host: "splenda", show: "wyd" },
-        "splenda": { host: "sideroom", show: "In too deep" },
-    };
-    
+
     let masterScheduleData = [];
     let currentMonday;
     
@@ -96,22 +86,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainText = document.getElementById('main-player-text');
         if (!playButton || !statusLabel || !mainText) return;
 
-        playButton.style.visibility = 'visible'; 
+        playButton.style.visibility = 'visible';
         statusLabel.textContent = "now playing";
 
-        const activeShow = SHOW_DIRECTORY[streamerAccount];
+        // Look up whatever show is scheduled for right now in the Google Doc.
+        // Fall back to the raw AzuraCast streamer handle if nothing matches.
+        const activeShow = getCurrentShow();
+        const host = (activeShow && activeShow.DJ) ? activeShow.DJ : streamerAccount;
+        const title = (activeShow && activeShow.Show) ? activeShow.Show : host;
 
-        if (activeShow) {
-            mainText.textContent = `${activeShow.show} w/ ${activeShow.host}`.toLowerCase();
+        if (activeShow && activeShow.Show) {
+            mainText.textContent = `${activeShow.Show} w/ ${host}`.toLowerCase();
         } else {
-            // Fallback if the DJ isn't in the directory
-            mainText.textContent = `${streamerAccount}`.toLowerCase();
+            mainText.textContent = `${host}`.toLowerCase();
         }
         // add the player info to lock screen
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: activeShow ? activeShow.show : streamerAccount,
-                artist: activeShow ? activeShow.host : "Radiomantis",
+                title: title,
+                artist: activeShow ? host : "Radiomantis",
                 artwork: [
                     { src: 'css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/webp' }
                 ]
@@ -283,63 +276,87 @@ document.addEventListener('DOMContentLoaded', () => {
         const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
     }
-function shouldBeWaiting() {
-        if (!masterScheduleData || masterScheduleData.length === 0) return false;
+// The current time in the radio's timezone. Both schedule lookups key off this.
+    function getNowInCopenhagen() {
+        return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
+    }
 
-        const localTimeStr = new Date().toLocaleString("en-US", {timeZone: "Europe/Copenhagen"});
-        const now = new Date(localTimeStr);
-        
+    // Resolves a schedule row into concrete { startTime, endTime } Date objects for
+    // the occurrence relevant to `now` — today, or yesterday for overnight shows that
+    // run past midnight. Returns null if the row isn't airing on either of those days.
+    function getShowWindow(show, now) {
+        if (!show.Start || !show.End) return null;
+
         const currentDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
-        
+
         const yesterday = new Date(now);
         yesterday.setDate(now.getDate() - 1);
         const yesterdayName = yesterday.toLocaleDateString('en-US', { weekday: 'long' });
-        
+
         const dateStringToday = now.toISOString().split('T')[0];
         const dateStringYesterday = yesterday.toISOString().split('T')[0];
 
-        for (let show of masterScheduleData) {
-            if (!show.Start || !show.End) continue;
-
-            let showDateObj = null;
-
-            if ((show.Date && show.Date === dateStringToday) || 
-                ((!show.Date || show.Date.trim() === "") && show.Day === currentDayName)) {
-                showDateObj = new Date(now); // Base it on today
-            } 
-            else if ((show.Date && show.Date === dateStringYesterday) || 
-                     ((!show.Date || show.Date.trim() === "") && show.Day === yesterdayName)) {
-                showDateObj = new Date(yesterday); // Base it on yesterday
-            }
-
-            if (showDateObj) {
-                const [startH, startM] = show.Start.split(':').map(Number);
-                let [endH, endM] = show.End.split(':').map(Number);
-                
-                const startTime = new Date(showDateObj);
-                startTime.setHours(startH, startM, 0, 0);
-
-                const endTime = new Date(showDateObj);
-                if (endH === 0 && endM === 0) {
-                    endTime.setDate(endTime.getDate() + 1);
-                } else {
-                    endTime.setHours(endH, endM, 0, 0);
-                }
-                const minsUntilStart = (startTime - now) / (1000 * 60);
-                const minsSinceEnd = (now - endTime) / (1000 * 60);
-
-                const isDuringShow = now >= startTime && now <= endTime;
-                
-                const isStartingSoon = minsUntilStart <= 15 && minsUntilStart > 0;
-
-                const justEnded = minsSinceEnd <= 15 && minsSinceEnd >= 0;
-
-                if (isDuringShow || isStartingSoon || justEnded) {
-                    return true;
-                }
-            }
+        let showDateObj = null;
+        if ((show.Date && show.Date === dateStringToday) ||
+            ((!show.Date || show.Date.trim() === "") && show.Day === currentDayName)) {
+            showDateObj = new Date(now); // Base it on today
+        } else if ((show.Date && show.Date === dateStringYesterday) ||
+                   ((!show.Date || show.Date.trim() === "") && show.Day === yesterdayName)) {
+            showDateObj = new Date(yesterday); // Base it on yesterday (overnight show)
         }
 
+        if (!showDateObj) return null;
+
+        const [startH, startM] = show.Start.split(':').map(Number);
+        const [endH, endM] = show.End.split(':').map(Number);
+
+        const startTime = new Date(showDateObj);
+        startTime.setHours(startH, startM, 0, 0);
+
+        const endTime = new Date(showDateObj);
+        if (endH === 0 && endM === 0) {
+            endTime.setDate(endTime.getDate() + 1); // Midnight end = next day
+        } else {
+            endTime.setHours(endH, endM, 0, 0);
+        }
+
+        return { startTime, endTime };
+    }
+
+    // Returns the schedule row currently on air, or null. Used to name the live show.
+    function getCurrentShow() {
+        if (!masterScheduleData || masterScheduleData.length === 0) return null;
+
+        const now = getNowInCopenhagen();
+        for (const show of masterScheduleData) {
+            const window = getShowWindow(show, now);
+            if (window && now >= window.startTime && now <= window.endTime) {
+                return show;
+            }
+        }
+        return null;
+    }
+
+    // True if a show is on air, or is within 15 minutes of starting or having ended.
+    function shouldBeWaiting() {
+        if (!masterScheduleData || masterScheduleData.length === 0) return false;
+
+        const now = getNowInCopenhagen();
+        for (const show of masterScheduleData) {
+            const window = getShowWindow(show, now);
+            if (!window) continue;
+
+            const minsUntilStart = (window.startTime - now) / (1000 * 60);
+            const minsSinceEnd = (now - window.endTime) / (1000 * 60);
+
+            const isDuringShow = now >= window.startTime && now <= window.endTime;
+            const isStartingSoon = minsUntilStart <= 15 && minsUntilStart > 0;
+            const justEnded = minsSinceEnd <= 15 && minsSinceEnd >= 0;
+
+            if (isDuringShow || isStartingSoon || justEnded) {
+                return true;
+            }
+        }
         return false;
     }
  
