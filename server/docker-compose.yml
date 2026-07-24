@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  chat:
+    build: .
+    container_name: radiomantis-chat
+    restart: unless-stopped
+    environment:
+      - CHAT_ADMIN_TOKEN=skjolhoj
+      - CHAT_HOST=0.0.0.0
+      - CHAT_PORT=8081
+    volumes:
+      # Persist the last-50 history + ban list across container restarts/rebuilds
+      - chat_data:/app/data
+    networks:
+      # Same external network as AzuraCast + Nginx Proxy Manager, so NPM can
+      # reach this container by name (radiomantis-chat) — no host port needed.
+      - proxy_network
+
+volumes:
+  chat_data: {}
+
+networks:
+  proxy_network:
+    external: true
