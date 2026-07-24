@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let masterScheduleData = [];
     let currentMonday;
-    
+    let chatInitialized = false;
+
 
     // ==========================================
     // 2. INITIALIZATION
@@ -450,9 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. LIVE CHAT (WebSocket)
     // ==========================================
     // The drawer lives outside #app-frame, so it survives SPA page-swaps. This runs
-    // once (guarded) and keeps a single WebSocket alive across navigation.
-
-    let chatInitialized = false;
+    // once (guarded by chatInitialized, declared with the top-level state) and keeps a
+    // single WebSocket alive across navigation.
 
     function initChat() {
         if (chatInitialized) return; // don't re-bind / reconnect on every page nav
