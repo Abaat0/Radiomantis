@@ -470,10 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const nickInput = document.getElementById('chat-nick-input');
         const closeBtn = document.getElementById('chat-close');
 
+        // Moderator access: visit the site with ?admin=<token> once; it's kept in
+        // sessionStorage so it survives SPA navigation (which drops the query string).
+        const ADMIN_KEY = 'radiomantis-chat-admin';
+        const urlAdmin = new URLSearchParams(location.search).get('admin');
+        if (urlAdmin) sessionStorage.setItem(ADMIN_KEY, urlAdmin);
+        const adminToken = sessionStorage.getItem(ADMIN_KEY);
+
         const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
-        const CHAT_URL = isLocal
+        const base = isLocal
             ? `ws://${location.hostname}:8081/chat`
             : `wss://${location.host}/chat`;
+        const CHAT_URL = adminToken ? `${base}?token=${encodeURIComponent(adminToken)}` : base;
 
         let ws = null;
         let nick = localStorage.getItem(NICK_KEY) || '';
