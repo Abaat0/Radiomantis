@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadGlobalSchedule();
         initSchedule();
         loadPastShows();
+        initChat();
     }
 
     // ==========================================
@@ -443,5 +444,154 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadPage();
             });
         });
+    }
+
+    // ==========================================
+    // 8. LIVE CHAT (WebSocket)
+    // ==========================================
+    // The drawer lives outside #app-frame, so it survives SPA page-swaps. This runs
+    // once (guarded) and keeps a single WebSocket alive across navigation.
+
+    let chatInitialized = false;
+
+    function initChat() {
+        if (chatInitialized) return; // don't re-bind / reconnect on every page nav
+        const drawer = document.getElementById('chat-drawer');
+        const toggle = document.getElementById('chat-toggle');
+        if (!drawer || !toggle) return;
+        chatInitialized = true;
+
+        const NICK_KEY = 'radiomantis-chat-nick';
+        const log = document.getElementById('chat-log');
+        const status = document.getElementById('chat-status');
+        const msgForm = document.getElementById('chat-form');
+        const msgInput = document.getElementById('chat-input');
+        const nickForm = document.getElementById('chat-nick-form');
+        const nickInput = document.getElementById('chat-nick-input');
+        const closeBtn = document.getElementById('chat-close');
+
+        const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+        const CHAT_URL = isLocal
+            ? `ws://${location.hostname}:8081/chat`
+            : `wss://${location.host}/chat`;
+
+        let ws = null;
+        let nick = localStorage.getItem(NICK_KEY) || '';
+        let reconnectDelay = 1000;
+
+        // ---- rendering (always textContent — never innerHTML — so messages can't inject) ----
+        function atBottom() {
+            return log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+        }
+        function trimLog() {
+            while (log.childNodes.length > 200) log.removeChild(log.firstChild);
+        }
+        function addMessage(nickName, text) {
+            const stick = atBottom();
+            const row = document.createElement('div');
+            row.className = 'chat-msg';
+            const who = document.createElement('span');
+            who.className = 'chat-msg-nick';
+            who.textContent = nickName;
+            const body = document.createElement('span');
+            body.className = 'chat-msg-text';
+            body.textContent = text;
+            row.append(who, body);
+            log.appendChild(row);
+            trimLog();
+            if (stick) log.scrollTop = log.scrollHeight;
+        }
+        function addSystem(text) {
+            const stick = atBottom();
+            const row = document.createElement('div');
+            row.className = 'chat-msg chat-msg--system';
+            row.textContent = text;
+            log.appendChild(row);
+            trimLog();
+            if (stick) log.scrollTop = log.scrollHeight;
+        }
+
+        // ---- nickname gate ----
+        function applyNickState() {
+            drawer.classList.toggle('needs-nick', !nick);
+            document.getElementById('chat-title').textContent = nick ? `chat · ${nick}` : 'chat';
+        }
+
+        // ---- connection ----
+        function connect() {
+            status.textContent = 'connecting…';
+            try {
+                ws = new WebSocket(CHAT_URL);
+            } catch (err) {
+                scheduleReconnect();
+                return;
+            }
+            ws.addEventListener('open', () => {
+                reconnectDelay = 1000;
+                status.textContent = '';
+                status.classList.add('is-hidden');
+                if (nick) ws.send(JSON.stringify({ type: 'join', nick }));
+            });
+            ws.addEventListener('message', (e) => {
+                let data;
+                try { data = JSON.parse(e.data); } catch { return; }
+                if (data.type === 'history' && Array.isArray(data.messages)) {
+                    log.textContent = '';
+                    data.messages.forEach((m) => addMessage(m.nick, m.text));
+                    log.scrollTop = log.scrollHeight;
+                } else if (data.type === 'msg') {
+                    addMessage(data.nick, data.text);
+                } else if (data.type === 'system') {
+                    addSystem(data.text);
+                } else if (data.type === 'clear') {
+                    log.textContent = '';
+                }
+            });
+            ws.addEventListener('close', scheduleReconnect);
+            ws.addEventListener('error', () => { try { ws.close(); } catch (e) {} });
+        }
+        function scheduleReconnect() {
+            status.classList.remove('is-hidden');
+            status.textContent = 'reconnecting…';
+            setTimeout(connect, reconnectDelay);
+            reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+        }
+
+        // ---- events ----
+        toggle.addEventListener('click', () => {
+            const open = drawer.classList.toggle('open');
+            drawer.setAttribute('aria-hidden', String(!open));
+            toggle.setAttribute('aria-expanded', String(open));
+            if (open) (nick ? msgInput : nickInput).focus();
+        });
+        closeBtn.addEventListener('click', () => {
+            drawer.classList.remove('open');
+            drawer.setAttribute('aria-hidden', 'true');
+            toggle.setAttribute('aria-expanded', 'false');
+        });
+        nickForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const value = nickInput.value.trim().slice(0, 24);
+            if (!value) return;
+            nick = value;
+            localStorage.setItem(NICK_KEY, nick);
+            applyNickState();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'join', nick }));
+            }
+            msgInput.focus();
+        });
+        msgForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = msgInput.value.trim();
+            if (!text || !nick) return;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'msg', text }));
+            }
+            msgInput.value = '';
+        });
+
+        applyNickState();
+        connect();
     }
 });

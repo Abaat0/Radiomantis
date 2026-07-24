@@ -44,6 +44,27 @@
         </nav>
     </div>
 
+    <!-- Live chat: sibling of #app-frame so it persists across page navigation -->
+    <button id="chat-toggle" type="button" aria-label="Open chat" aria-expanded="false">chat</button>
+    <aside id="chat-drawer" aria-hidden="true" aria-label="Live chat">
+        <div id="chat-header">
+            <span id="chat-title">chat</span>
+            <button id="chat-close" type="button" aria-label="Close chat">&times;</button>
+        </div>
+        <div id="chat-status">connecting&hellip;</div>
+        <div id="chat-log" role="log" aria-live="polite"></div>
+        <form id="chat-form" autocomplete="off">
+            <input id="chat-input" type="text" maxlength="500" placeholder="say something&hellip;" aria-label="Message">
+        </form>
+        <div id="chat-nick-gate">
+            <form id="chat-nick-form" autocomplete="off">
+                <label for="chat-nick-input">pick a name to chat</label>
+                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name" aria-label="Nickname">
+                <button type="submit">join</button>
+            </form>
+        </div>
+    </aside>
+
     <audio id="radio-stream" src="https://radiomantis.com/listen/radiomantis/radio.mp3" preload="none"></audio>
     <script src="javascript/script.js"></script> 
 </body>

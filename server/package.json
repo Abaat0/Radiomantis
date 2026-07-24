@@ -1,0 +1,14 @@
+{
+  "name": "radiomantis-chat",
+  "version": "1.0.0",
+  "description": "Tiny self-hosted WebSocket chat for the Radiomantis radio site.",
+  "license": "MIT",
+  "private": true,
+  "main": "chat.js",
+  "scripts": {
+    "start": "node chat.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

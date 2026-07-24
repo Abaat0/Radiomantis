@@ -471,3 +471,174 @@ p {
         color: var(--navtextcolor);
     }
 }
+
+/* ============================================================
+   LIVE CHAT (persistent drawer, lives outside #app-frame)
+   ============================================================ */
+
+#chat-toggle {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 29;
+    background-color: var(--navtextcolor);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    border: none;
+    padding: 14px 10px;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.2);
+    transition: filter 0.15s ease;
+}
+#chat-toggle:hover {
+    filter: brightness(1.1);
+}
+
+#chat-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: min(360px, 92vw);
+    z-index: 30;
+    transform: translateX(100%);
+    transition: transform 0.25s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(250, 250, 244, 0.95);
+    backdrop-filter: blur(4px);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.25);
+    font-family: 'Castoro', serif;
+}
+#chat-drawer.open {
+    transform: translateX(0);
+}
+
+#chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.15);
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    color: var(--navtextcolor);
+}
+#chat-title {
+    font-size: 1.15rem;
+}
+#chat-close {
+    background: none;
+    border: none;
+    color: var(--navtextcolor);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+#chat-status {
+    padding: 6px 18px;
+    font-size: 0.85rem;
+    color: #777;
+    text-align: center;
+}
+#chat-status.is-hidden {
+    display: none;
+}
+
+#chat-log {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #333;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+.chat-msg {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.chat-msg-nick {
+    color: var(--navtextcolor);
+    font-weight: bold;
+    margin-right: 0.5em;
+}
+.chat-msg--system {
+    color: #999;
+    font-style: italic;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+#chat-form,
+#chat-nick-gate {
+    padding: 14px 18px;
+    border-top: 1px solid rgba(51, 51, 51, 0.15);
+}
+#chat-input,
+#chat-nick-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(51, 51, 51, 0.3);
+    border-radius: 6px;
+    font-family: 'Castoro', serif;
+    font-size: 0.95rem;
+    color: #333;
+    background: #fff;
+}
+#chat-input:focus,
+#chat-nick-input:focus {
+    outline: 2px solid var(--navtextcolor);
+    outline-offset: -1px;
+}
+#chat-nick-gate label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    color: var(--navtextcolor);
+    font-size: 0.95rem;
+}
+#chat-nick-gate button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--navtextcolor);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+/* Nickname gate replaces the message box until a name is chosen. */
+#chat-nick-gate {
+    display: none;
+}
+#chat-drawer.needs-nick #chat-form {
+    display: none;
+}
+#chat-drawer.needs-nick #chat-nick-gate {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    #chat-drawer {
+        width: 100vw;
+    }
+}
