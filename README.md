@@ -1,11 +1,10 @@
 # Radiomantis
 
-The website for [Radiomantis](https://radiomantis.com),  an online community radio based in
-Denmark, but always on the move. 
+The website for [Radiomantis](https://radiomantis.com),  an online community radio.
 ## How it works
 
-A small static site (plain HTML/CSS/vanilla JS, **no build step**) plus a tiny Node chat
-backend. The pages are served straight from disk; the streaming/broadcast side lives in
+A small static site (plain HTML/CSS/vanilla JS) plus a tiny Node chat
+backend. The pages are served straight from disk, the streaming/broadcast side lives in
 [AzuraCast](https://www.azuracast.com/), and a few things are pulled live in the browser:
 
 - **Now playing** — polled from the AzuraCast API (`/api/nowplaying`).
