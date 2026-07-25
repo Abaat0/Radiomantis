@@ -508,7 +508,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const who = document.createElement('span');
             who.className = 'chat-msg-nick';
-            who.textContent = nickName;
+            if (nickName === nick) who.classList.add('chat-msg-nick--me'); 
+            who.textContent = nickName + ":";
             const body = document.createElement('span');
             body.className = 'chat-msg-text';
             body.textContent = text;

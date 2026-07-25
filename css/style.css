@@ -589,6 +589,10 @@ p {
     font-weight: bold;
     margin-right: 0.5em;
 }
+/* Your own nickname, so you can spot your messages at a glance */
+.chat-msg-nick--me {
+    color: #3f7d16;
+}
 .chat-msg--system {
     color: #999;
     font-style: italic;
