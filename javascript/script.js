@@ -165,6 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function initSchedule() {
         if (!document.getElementById('schedule-container')) return;
 
+        // Reflect that times are shown in the users local zone, not CET
+        const tzNote = document.getElementById('tz-note');
+        if (tzNote) {
+            const abbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+            tzNote.textContent = `all times are ${abbr} (+1 means next day)`;
+        }
+
         currentMonday = getMonday(new Date());
         
         const prevBtn = document.getElementById('prev-week-btn');
@@ -221,8 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get string formats for matching ("Monday" and "2026-04-06")
             const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
             const year = currentDate.getFullYear();
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const day = String(currentDate.getDate()).padStart(2, '0');
+            const monthIndex = currentDate.getMonth();
+            const dayNum = currentDate.getDate();
+            const month = String(monthIndex + 1).padStart(2, '0');
+            const day = String(dayNum).padStart(2, '0');
             const dateString = `${year}-${month}-${day}`
 
             // Filter the master data for shows happening on this specific date
@@ -248,9 +257,25 @@ document.addEventListener('DOMContentLoaded', () => {
                
                 // Add each show row
                 daysShows.forEach(show => {
+                    const [sh, sm] = show.Start.split(':').map(Number);
+                    const [eh, em] = show.End.split(':').map(Number);
+                    const startInstant = cphWallToDate(year, monthIndex, dayNum, sh, sm);
+                    // An end of 00:00 means the following midnight, not the same morning
+                    const endInstant = (eh === 0 && em === 0)
+                        ? cphWallToDate(year, monthIndex, dayNum + 1, 0, 0)
+                        : cphWallToDate(year, monthIndex, dayNum, eh, em);
+
+                    const fmt = t => t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
+
+                    // Marker if the show lands on a different calendar day in local time
+                    const cetMidnight = new Date(year, monthIndex, dayNum).getTime();
+                    const localMidnight = new Date(startInstant.getFullYear(), startInstant.getMonth(), startInstant.getDate()).getTime();
+                    const dayDelta = Math.round((localMidnight - cetMidnight) / 86400000);
+                    const marker = dayDelta > 0 ? ` (+${dayDelta})` : dayDelta < 0 ? ` (${dayDelta})` : '';
+
                     dayHtml += `
                         <div class="schedule-row">
-                            <div class="schedule-time">${show.Start} - ${show.End}</div>
+                            <div class="schedule-time">${fmt(startInstant)} - ${fmt(endInstant)}${marker}</div>
                             <div class="schedule-info">${show.Show ? `${show.Show} w/ ` : ''}${show.DJ}</div>
                         </div>
                     `;
@@ -277,6 +302,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         return new Date(d.setDate(diff));
+    }
+
+    // The schedule sheet's Start/End are Europe/Copenhagen wall-clock times. These helpers
+    // convert them to the viewer's local timezone, correctly across DST (CET vs CEST).
+
+    // Minutes to ADD to a UTC instant to get the wall-clock time in `tz`.
+    function tzOffsetMinutes(date, tz) {
+        const dtf = new Intl.DateTimeFormat('en-US', {
+            timeZone: tz, hour12: false,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        const p = {};
+        for (const part of dtf.formatToParts(date)) p[part.type] = part.value;
+        const hour = p.hour === '24' ? 0 : Number(p.hour);
+        const asUTC = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), hour, Number(p.minute), Number(p.second));
+        return (asUTC - date.getTime()) / 60000;
+    }
+
+    // Absolute Date for a Copenhagen wall-clock time on a given calendar day.
+    function cphWallToDate(year, monthIndex, day, hh, mm) {
+        const guessUTC = Date.UTC(year, monthIndex, day, hh, mm);
+        const offset = tzOffsetMinutes(new Date(guessUTC), 'Europe/Copenhagen');
+        return new Date(guessUTC - offset * 60000);
     }
 // The current time in the radio's timezone. Both schedule lookups key off this.
     function getNowInCopenhagen() {
