@@ -494,17 +494,25 @@ document.addEventListener('DOMContentLoaded', () => {
         function trimLog() {
             while (log.childNodes.length > 200) log.removeChild(log.firstChild);
         }
-        function addMessage(nickName, text) {
+        function addMessage(nickName, text, ts) {
             const stick = atBottom();
             const row = document.createElement('div');
             row.className = 'chat-msg';
+            const time = document.createElement('span');
+            time.className = 'chat-msg-time';
+            if (ts) {
+                const d = new Date(ts);
+                // Formatted in the VIEWER's local timezone — the ts is absolute.
+                time.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                time.title = d.toLocaleString();
+            }
             const who = document.createElement('span');
             who.className = 'chat-msg-nick';
             who.textContent = nickName;
             const body = document.createElement('span');
             body.className = 'chat-msg-text';
             body.textContent = text;
-            row.append(who, body);
+            row.append(time, who, body);
             log.appendChild(row);
             trimLog();
             if (stick) log.scrollTop = log.scrollHeight;
@@ -522,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ---- nickname gate ----
         function applyNickState() {
             drawer.classList.toggle('needs-nick', !nick);
-            document.getElementById('chat-title').textContent = nick ? `chat · ${nick}` : 'chat';
+            document.getElementById('chat-title').textContent = nick ? `Chat · ${nick}` : 'chat';
         }
 
         // ---- connection ----
@@ -545,10 +553,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { data = JSON.parse(e.data); } catch { return; }
                 if (data.type === 'history' && Array.isArray(data.messages)) {
                     log.textContent = '';
-                    data.messages.forEach((m) => addMessage(m.nick, m.text));
+                    data.messages.forEach((m) => addMessage(m.nick, m.text, m.ts));
                     log.scrollTop = log.scrollHeight;
                 } else if (data.type === 'msg') {
-                    addMessage(data.nick, data.text);
+                    addMessage(data.nick, data.text, data.ts);
                 } else if (data.type === 'system') {
                     addSystem(data.text);
                 } else if (data.type === 'clear') {

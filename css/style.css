@@ -578,6 +578,12 @@ p {
     word-wrap: break-word;
     overflow-wrap: anywhere;
 }
+.chat-msg-time {
+    color: #aaa;
+    font-size: 0.75em;
+    margin-right: 0.5em;
+    font-variant-numeric: tabular-nums;
+}
 .chat-msg-nick {
     color: var(--navtextcolor);
     font-weight: bold;
