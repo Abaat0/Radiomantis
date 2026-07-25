@@ -17,10 +17,16 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             # Navigate to your website folder
-            cd ~/website 
-            
+            cd ~/website
+
             # Discard any local changes on the server just in case
             git reset --hard HEAD
-            
+
             # Pull the latest code
             git pull origin main
+
+            # Rebuild + restart the chat container. This is a no-op for pure
+            # frontend changes (Docker's build cache reuses layers and the
+            # container isn't recreated unless the image actually changed).
+            cd ~/website/server
+            docker compose up -d --build
