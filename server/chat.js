@@ -60,9 +60,18 @@ function saveStore() {
   }, 1000);
 }
 
-const bans = new Set();
+// ip -> nick label, so bans can be listed and undone by the nick they were banned under.
+const bans = new Map();
 loadStore();
-store.bans.forEach((ip) => bans.add(ip));
+store.bans.forEach((b) => {
+  if (typeof b === 'string') bans.set(b, '');            // legacy format: bare IP strings
+  else if (b && b.ip) bans.set(b.ip, b.nick || '');
+});
+
+function persistBans() {
+  store.bans = [...bans].map(([ip, nick]) => ({ ip, nick }));
+  saveStore();
+}
 
 // ---- Helpers ----------------------------------------------------------------
 // Strip control characters (defense in depth; the client also renders as text).
@@ -123,7 +132,7 @@ wss.on('connection', (ws, req) => {
   ws.stamps = []; // message timestamps for rate limiting
 
   send(ws, { type: 'history', messages: store.messages });
-  if (ws.isAdmin) send(ws, { type: 'system', text: 'admin mode: /clear, /kick <nick>, /ban <nick>' });
+  if (ws.isAdmin) send(ws, { type: 'system', text: 'admin mode: /clear, /kick <nick>, /ban <nick>, /unban <nick>, /bans' });
 
   ws.on('message', (raw) => {
     let data;
@@ -182,16 +191,32 @@ function handleAdminCommand(ws, text) {
     for (const client of wss.clients) {
       if (client.nick === arg) {
         hit++;
-        if (cmd === 'ban') {
-          bans.add(client.ip);
-          store.bans = [...bans];
-          saveStore();
-        }
+        if (cmd === 'ban') bans.set(client.ip, client.nick);
         send(client, { type: 'system', text: `you were ${cmd === 'ban' ? 'banned' : 'kicked'}.` });
         client.close();
       }
     }
-    send(ws, { type: 'system', text: hit ? `${cmd}ed ${arg} (${hit}).` : `no one named "${arg}" is here.` });
+    if (cmd === 'ban' && hit) persistBans();
+    const verb = cmd === 'ban' ? 'banned' : 'kicked';
+    send(ws, { type: 'system', text: hit ? `${verb} ${arg} (${hit}).` : `no one named "${arg}" is here.` });
+    return;
+  }
+
+  if (cmd === 'unban') {
+    if (!arg) return send(ws, { type: 'system', text: 'usage: /unban <nick or ip>' });
+    let removed = 0;
+    for (const [ip, nick] of [...bans]) {
+      if (nick === arg || ip === arg) { bans.delete(ip); removed++; }
+    }
+    if (removed) persistBans();
+    send(ws, { type: 'system', text: removed ? `unbanned ${arg} (${removed}).` : `no ban matching "${arg}".` });
+    return;
+  }
+
+  if (cmd === 'bans') {
+    if (bans.size === 0) return send(ws, { type: 'system', text: 'no active bans.' });
+    const list = [...bans].map(([ip, nick]) => `${nick || '?'} (${ip})`).join(', ');
+    send(ws, { type: 'system', text: `banned: ${list}` });
     return;
   }
 

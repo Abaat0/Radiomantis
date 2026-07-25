@@ -44,7 +44,9 @@ moderator can type:
 
 - `/clear` — wipe history for everyone
 - `/kick <nick>` — disconnect everyone using that nick
-- `/ban <nick>` — disconnect + ban their IP (persisted in the data file)
+- `/ban <nick>` — disconnect + ban their IP (persisted, remembers the nick)
+- `/unban <nick or ip>` — lift a ban (by the nick it was set under, or the raw IP)
+- `/bans` — list active bans as `nick (ip)`
 
 There is no channel-op system; you are the moderator. Keep the `?admin=` URL private — the
 token rides in it.
