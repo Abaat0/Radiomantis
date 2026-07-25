@@ -124,7 +124,14 @@ p {
 }
 
 #social-links img:hover {
-    transform: scale(1.1); 
+    transform: scale(1.1);
+}
+/*to make the mixcloud icon bigger to match instagram*/
+#social-links img[alt="Mixcloud"] {
+    transform: scale(1.35);
+}
+#social-links img[alt="Mixcloud"]:hover {
+    transform: scale(1.5);
 }
 
 #main-menu {
