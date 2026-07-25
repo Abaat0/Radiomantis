@@ -642,6 +642,12 @@ p {
     font-size: 0.95rem;
     cursor: pointer;
 }
+.chat-hint {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #999;
+    text-align: center;
+}
 
 /* Nickname gate replaces the message box until a name is chosen. */
 #chat-nick-gate {
@@ -657,5 +663,13 @@ p {
 @media (max-width: 768px) {
     #chat-drawer {
         width: 100vw;
+        /* Solid on mobile so no page-green shows through the panel */
+        background-color: #faf9f4;
+        backdrop-filter: none;
+    }
+    /* Clear the iPhone home indicator so the input isn't hidden behind it */
+    #chat-form,
+    #chat-nick-gate {
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
     }
 }

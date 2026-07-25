@@ -551,8 +551,8 @@ document.addEventListener('DOMContentLoaded', () => {
             time.className = 'chat-msg-time';
             if (ts) {
                 const d = new Date(ts);
-                // Formatted in the VIEWER's local timezone — the ts is absolute.
-                time.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                // Viewer's local timezone, 24h, Latin digits — ts is absolute.
+                time.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
                 time.title = d.toLocaleString();
             }
             const who = document.createElement('span');
@@ -581,6 +581,21 @@ document.addEventListener('DOMContentLoaded', () => {
         function applyNickState() {
             drawer.classList.toggle('needs-nick', !nick);
             document.getElementById('chat-title').textContent = nick ? `Chat · ${nick}` : 'chat';
+        }
+        function setNick(value) {
+            const v = value.trim().slice(0, 24);
+            if (!v) return false;
+            nick = v;
+            localStorage.setItem(NICK_KEY, nick);
+            applyNickState();
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'join', nick }));
+            return true;
+        }
+        function logout() {
+            nick = '';
+            localStorage.removeItem(NICK_KEY);
+            applyNickState(); // reopens the "pick a name" gate
+            if (nickInput) nickInput.focus();
         }
 
         // ---- connection ----
@@ -623,39 +638,74 @@ document.addEventListener('DOMContentLoaded', () => {
             reconnectDelay = Math.min(reconnectDelay * 2, 15000);
         }
 
+        // ---- mobile keyboard: keep the drawer sized to the visible viewport so the
+        // input sits just above the on-screen keyboard (a fixed 100dvh element would
+        // otherwise be overlapped, hiding the input and showing the page behind it) ----
+        function fitViewport() {
+            const vv = window.visualViewport;
+            if (!vv) return;
+            if (drawer.classList.contains('open')) {
+                drawer.style.height = vv.height + 'px';
+                drawer.style.top = vv.offsetTop + 'px';
+                log.scrollTop = log.scrollHeight;
+            } else {
+                drawer.style.height = '';
+                drawer.style.top = '';
+            }
+        }
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitViewport);
+            window.visualViewport.addEventListener('scroll', fitViewport);
+        }
+
         // ---- events ----
         toggle.addEventListener('click', () => {
             const open = drawer.classList.toggle('open');
             drawer.setAttribute('aria-hidden', String(!open));
             toggle.setAttribute('aria-expanded', String(open));
+            fitViewport();
             if (open) (nick ? msgInput : nickInput).focus();
         });
         closeBtn.addEventListener('click', () => {
             drawer.classList.remove('open');
             drawer.setAttribute('aria-hidden', 'true');
             toggle.setAttribute('aria-expanded', 'false');
+            drawer.style.height = '';
+            drawer.style.top = '';
         });
         nickForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const value = nickInput.value.trim().slice(0, 24);
-            if (!value) return;
-            nick = value;
-            localStorage.setItem(NICK_KEY, nick);
-            applyNickState();
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'join', nick }));
-            }
-            msgInput.focus();
+            if (setNick(nickInput.value)) msgInput.focus();
         });
         msgForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const text = msgInput.value.trim();
-            if (!text || !nick) return;
+            if (!text) return;
+            msgInput.value = '';
+
+            // Self-service commands, handled locally (never sent as chat)
+            if (text === '/logout') { logout(); return; }
+            const rename = text.match(/^\/nick\s+(.+)$/i);
+            if (rename) {
+                if (setNick(rename[1])) addSystem(`you're now ${nick}`);
+                return;
+            }
+
+            if (!nick) return;
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'msg', text }));
             }
-            msgInput.value = '';
         });
+
+        // Discoverability hint for the self-service commands (injected so the drawer
+        // markup stays identical across pages)
+        const nickGate = document.getElementById('chat-nick-gate');
+        if (nickGate && !nickGate.querySelector('.chat-hint')) {
+            const hint = document.createElement('p');
+            hint.className = 'chat-hint';
+            hint.textContent = 'change it later with /nick <name>, or /logout to reset';
+            nickGate.appendChild(hint);
+        }
 
         applyNickState();
         connect();
