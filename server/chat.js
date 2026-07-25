@@ -196,7 +196,10 @@ function handleAdminCommand(ws, text) {
         client.close();
       }
     }
-    if (hit) persistBans();
+    if (hit) {
+      persistBans();
+      broadcast({ type: 'system', text: `${arg} was banned.` });
+    }
     send(ws, { type: 'system', text: hit ? `banned ${arg} (${hit}).` : `no one named "${arg}" is here.` });
     return;
   }
@@ -204,10 +207,19 @@ function handleAdminCommand(ws, text) {
   if (cmd === 'unban') {
     if (!arg) return send(ws, { type: 'system', text: 'usage: /unban <nick or ip>' });
     let removed = 0;
+    const names = new Set(); // collect nicks so we never broadcast a raw IP
     for (const [ip, nick] of [...bans]) {
-      if (nick === arg || ip === arg) { bans.delete(ip); removed++; }
+      if (nick === arg || ip === arg) {
+        if (nick) names.add(nick);
+        bans.delete(ip);
+        removed++;
+      }
     }
-    if (removed) persistBans();
+    if (removed) {
+      persistBans();
+      const label = names.size ? [...names].join(', ') : 'a user';
+      broadcast({ type: 'system', text: `${label} was unbanned.` });
+    }
     send(ws, { type: 'system', text: removed ? `unbanned ${arg} (${removed}).` : `no ban matching "${arg}".` });
     return;
   }
