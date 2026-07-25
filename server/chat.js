@@ -132,7 +132,7 @@ wss.on('connection', (ws, req) => {
   ws.stamps = []; // message timestamps for rate limiting
 
   send(ws, { type: 'history', messages: store.messages });
-  if (ws.isAdmin) send(ws, { type: 'system', text: 'admin mode: /clear, /kick <nick>, /ban <nick>, /unban <nick>, /bans' });
+  if (ws.isAdmin) send(ws, { type: 'system', text: 'admin mode: /clear, /ban <nick>, /unban <nick>, /bans' });
 
   ws.on('message', (raw) => {
     let data;
@@ -185,20 +185,19 @@ function handleAdminCommand(ws, text) {
     return;
   }
 
-  if (cmd === 'kick' || cmd === 'ban') {
-    if (!arg) return send(ws, { type: 'system', text: `usage: /${cmd} <nick>` });
+  if (cmd === 'ban') {
+    if (!arg) return send(ws, { type: 'system', text: 'usage: /ban <nick>' });
     let hit = 0;
     for (const client of wss.clients) {
       if (client.nick === arg) {
         hit++;
-        if (cmd === 'ban') bans.set(client.ip, client.nick);
-        send(client, { type: 'system', text: `you were ${cmd === 'ban' ? 'banned' : 'kicked'}.` });
+        bans.set(client.ip, client.nick);
+        send(client, { type: 'system', text: 'you were banned.' });
         client.close();
       }
     }
-    if (cmd === 'ban' && hit) persistBans();
-    const verb = cmd === 'ban' ? 'banned' : 'kicked';
-    send(ws, { type: 'system', text: hit ? `${verb} ${arg} (${hit}).` : `no one named "${arg}" is here.` });
+    if (hit) persistBans();
+    send(ws, { type: 'system', text: hit ? `banned ${arg} (${hit}).` : `no one named "${arg}" is here.` });
     return;
   }
 

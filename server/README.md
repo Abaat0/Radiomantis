@@ -43,7 +43,6 @@ A visitor becomes a moderator by loading the site once with `?admin=<CHAT_ADMIN_
 moderator can type:
 
 - `/clear` — wipe history for everyone
-- `/kick <nick>` — disconnect everyone using that nick
 - `/ban <nick>` — disconnect + ban their IP (persisted, remembers the nick)
 - `/unban <nick or ip>` — lift a ban (by the nick it was set under, or the raw IP)
 - `/bans` — list active bans as `nick (ip)`
