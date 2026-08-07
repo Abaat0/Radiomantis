@@ -209,7 +209,7 @@ p {
 .past-shows-box h2 {
     font-weight: 900;
     font-size: var(--fs-heading);
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .shows-grid {
