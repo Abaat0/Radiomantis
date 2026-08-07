@@ -71,7 +71,7 @@ p {
     flex-direction: column;
     align-items: flex-end; 
     text-align: right; 
-    gap: 30px;
+    gap: 10px;
     width: 50%;
     border: 1px solid var(--bordercolor);
     font-size: var(--fs-player);
