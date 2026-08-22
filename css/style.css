@@ -227,7 +227,13 @@ p {
     color: inherit;
 }
 
-
+/* The Resident Picture */
+.show-item img2 {
+    width: 100%; 
+    height: auto;
+    aspect-ratio: 3 / 4; 
+    object-fit: cover;
+}
 
 /* The Show Picture */
 .show-item img {
