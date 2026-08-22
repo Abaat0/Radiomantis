@@ -230,6 +230,10 @@ p {
 /* The Past Shows and Residents Pictures */
 .residents-grid .show-item img {
     aspect-ratio: 3 / 4;
+/* Hide text for Residents */
+.residents-grid .show-item p {
+    display: none;
+}
 .show-item img {
     width: 100%; 
     height: auto;
@@ -238,6 +242,7 @@ p {
 }
 
 /* The Show Title */
+
 .show-item p {
     font-family: 'Castoro', serif;
     font-size: var(--fs-card);
