@@ -230,6 +230,8 @@ p {
 /* The Past Shows and Residents Pictures */
 .residents-grid .show-item img {
     aspect-ratio: 3 / 4;
+}
+
 /* Hide text for Residents */
 .residents-grid .show-item p {
     display: none;
