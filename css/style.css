@@ -229,7 +229,7 @@ p {
 
 /* The Past Shows and Residents Pictures */
 .residents-grid .show-item img {
-    aspect-ratio: auto;
+    aspect-ratio: 3 / 4;
 .show-item img {
     width: 100%; 
     height: auto;
