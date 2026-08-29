@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         playButton.style.visibility = 'visible';
         statusLabel.textContent = "now playing";
-        statusLabel.style.visibility = 'hidden';
 
         // Look up whatever show is scheduled for right now in the Google Doc.
         // Fall back to the raw AzuraCast streamer handle if nothing matches.
