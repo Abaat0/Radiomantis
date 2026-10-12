@@ -1,23 +1,23 @@
 {
   "name": "Radiomantis",
   "short_name": "Radiomantis",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#c8e476",
   "theme_color": "#c8e476",
   "icons": [
       {
-        "src": "css/pictures/app-icon.png",
+        "src": "/pictures/app-icon.png",
         "sizes": "192x192",
         "type": "image/png"
       },
       {
-        "src": "css/pictures/app-icon.png",
+        "src": "/pictures/app-icon.png",
         "sizes": "512x512",
         "type": "image/png"
       },
       {
-      "src": "css/pictures/maskable-icon.png",
+      "src": "/pictures/maskable-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
