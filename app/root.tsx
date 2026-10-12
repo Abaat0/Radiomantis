@@ -39,8 +39,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Everything outside <Outlet> stays mounted across navigation: the audio element
-// (inside RadioProvider), the plant and the chat drawer.
 export default function App() {
   return (
     <RadioProvider>

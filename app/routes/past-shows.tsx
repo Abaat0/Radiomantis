@@ -22,7 +22,6 @@ function PastShowsBox({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Pre-rendered into the HTML and shown until the Mixcloud fetch resolves
 export function HydrateFallback() {
   return (
     <PastShowsBox>

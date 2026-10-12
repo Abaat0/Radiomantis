@@ -16,7 +16,6 @@ export default function About() {
             playing music."
           </i>
         </h3>
-        {/* Plain text, not a <p>: the legacy `.subpage-box p` rule would make it bolder */}
         <div>
           Radio Mantis was founded in 2025 in a cozy student dorm in Aarhus, Denmark and have
           since then expanded to a global reach hosting regular shows from residents based

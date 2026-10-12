@@ -12,11 +12,8 @@ const formatTime = (t: Date) =>
     numberingSystem: "latn",
   });
 
-/** Week controls + the week's shows in the viewer's timezone. */
 export function Schedule() {
   const { schedule } = useRadio();
-  // Anything clock- or timezone-dependent is set after mount, so the
-  // pre-rendered HTML (built on the build machine) still hydrates cleanly.
   const [monday, setMonday] = useState<Date | null>(null);
   const [tzNote, setTzNote] = useState("all times are in cet!");
 

@@ -14,11 +14,9 @@ export type RadioStatus = "online" | "standby" | "offline";
 
 type RadioState = {
   status: RadioStatus;
-  /** "show w/ dj" or just the DJ; only meaningful while online */
   nowPlaying: string;
   isPlaying: boolean;
   toggle: () => void;
-  /** null until the sheet has loaded, "error" if it couldn't be fetched */
   schedule: ShowRow[] | null | "error";
 };
 
@@ -34,16 +32,11 @@ type NowPlayingResponse = {
   live?: { is_live: boolean; streamer_name?: string };
 };
 
-/**
- * Owns the single <audio> element and the live-status polling. Rendered in the root
- * layout, outside the route <Outlet>, so playback survives navigation.
- */
 export function RadioProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [schedule, setSchedule] = useState<ShowRow[] | null | "error">(null);
   const [live, setLive] = useState<{ isLive: boolean; streamer: string } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  // Bumped on every poll so standby (which depends on the clock) is re-evaluated
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -87,19 +80,15 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
       ? "standby"
       : "offline";
 
-  // Prefer the show scheduled right now in the sheet; fall back to the raw
-  // AzuraCast streamer handle if nothing matches.
   const activeShow = status === "online" ? getCurrentShow(rows) : null;
   const host = activeShow?.DJ || live?.streamer || "";
   const nowPlaying = (activeShow?.Show ? `${activeShow.Show} w/ ${host}` : host).toLowerCase();
 
-  // Force-stop the stream if the DJ logs off mid-listen
   useEffect(() => {
     const audio = audioRef.current;
     if (status === "offline" && audio && !audio.paused) audio.pause();
   }, [status, tick]);
 
-  // Lock-screen / media-key metadata
   useEffect(() => {
     if (status !== "online" || !("mediaSession" in navigator)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -113,13 +102,11 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.paused) {
-      // Re-attach the stream URL right before playing to guarantee the live edge
       audio.src = STREAM_URL;
       audio.load();
       audio.play().catch((error) => console.error("Playback failed:", error));
     } else {
       audio.pause();
-      // Wipe the source so the browser stops downloading dead data
       audio.removeAttribute("src");
       audio.load();
     }

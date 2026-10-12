@@ -9,7 +9,6 @@ function MessageRow({ message, me }: { message: ChatMessage; me: string }) {
   return (
     <div className="chat-msg">
       <span className="chat-msg-time" title={date?.toLocaleString()}>
-        {/* Viewer's local timezone, 24h, Latin digits — ts is absolute */}
         {date?.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -25,11 +24,6 @@ function MessageRow({ message, me }: { message: ChatMessage; me: string }) {
   );
 }
 
-/**
- * Slide-in live chat. Lives in the root layout, outside the route <Outlet>, so the
- * socket and scrollback survive navigation. Messages render as React text nodes,
- * so they can't inject markup.
- */
 export function ChatDrawer() {
   const { messages, connected, reconnecting, nick, setNick, submit } = useChat();
   const [open, setOpen] = useState(false);
@@ -37,7 +31,6 @@ export function ChatDrawer() {
   const logRef = useRef<HTMLDivElement>(null);
   const msgInputRef = useRef<HTMLInputElement>(null);
   const nickInputRef = useRef<HTMLInputElement>(null);
-  // Whether the log was scrolled to (near) the bottom before the latest update
   const stickRef = useRef(true);
 
   const onLogScroll = () => {
@@ -50,8 +43,6 @@ export function ChatDrawer() {
     if (log && stickRef.current) log.scrollTop = log.scrollHeight;
   }, [messages, viewport]);
 
-  // Mobile keyboard: keep the drawer sized to the visible viewport so the input sits
-  // just above the on-screen keyboard instead of being overlapped by it.
   useEffect(() => {
     const vv = window.visualViewport;
     if (!open || !vv) {

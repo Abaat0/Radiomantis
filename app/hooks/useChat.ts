@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const NICK_KEY = "radiomantis-chat-nick";
-// Moderator access: visit the site with ?admin=<token> once; it's kept in
-// sessionStorage so it survives navigation (which drops the query string).
 const ADMIN_KEY = "radiomantis-chat-admin";
 const MAX_MESSAGES = 200;
 const MAX_NICK = 24;
@@ -31,15 +29,10 @@ function chatUrl(): string {
   return adminToken ? `${base}?token=${encodeURIComponent(adminToken)}` : base;
 }
 
-/**
- * One WebSocket for the lifetime of the app, with exponential-backoff reconnects.
- * `/nick <name>` and `/logout` are handled locally and never sent.
- */
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
-  // Empty until mount, then whatever was saved in localStorage
   const [nick, setNickState] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
   const nickRef = useRef("");
@@ -134,7 +127,6 @@ export function useChat() {
     [sendJoin],
   );
 
-  /** Handles a line typed into the message box: a local command or a chat message. */
   const submit = useCallback(
     (raw: string) => {
       const text = raw.trim();

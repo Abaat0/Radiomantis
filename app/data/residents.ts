@@ -2,7 +2,6 @@ export type Resident = {
   name: string;
   country: string;
   image: string;
-  /** Profile link; cards without one aren't clickable yet. */
   url?: string;
 };
 
