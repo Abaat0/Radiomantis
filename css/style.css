@@ -47,16 +47,19 @@ p {
 }
 
 #home-view {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between; 
-    align-items: top;
-    flex-grow: 1; 
+    display: grid;
+    grid-template-areas:    "logo info"
+                            "logo schedule";
 }
 
 #brand-logo {
+    grid-area: "logo";
     width: 50%; 
     max-width: min(600px, 50vh);    
+}
+
+.past-shows-box {
+    grid-area: schedule
 }
 
 .responsive-img {
@@ -66,6 +69,7 @@ p {
 }
 
 #info-box {
+    grid-area: "info";
     padding-top: 20px;
     display: flex;
     flex-direction: column;
