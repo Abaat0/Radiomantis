@@ -1,0 +1,21 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "./styles/legacy.css";
+
+@theme {
+  --color-leaf: #c8e476;
+  --color-nav: #db1f26;
+  --color-ink: #333333;
+
+  --font-castoro: "Castoro", serif;
+  --font-fraunces: "Fraunces", serif;
+  --font-playfair: "Playfair Display", serif;
+
+  --text-nav: clamp(1.6rem, 0.2rem + 2.3vw, 3.6rem);
+  --text-player: clamp(1.35rem, 0.8rem + 1.8vw, 2.5rem);
+  --text-heading: clamp(1.8rem, 1rem + 2.2vw, 3rem);
+  --text-body: clamp(0.875rem, 0.2rem + 0.95vw, 1.375rem);
+  --text-card: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
+}

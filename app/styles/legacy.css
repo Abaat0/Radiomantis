@@ -25,7 +25,7 @@ body {
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
-    background-image: url('pictures/background.webp');
+    background-image: url('/pictures/background.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -47,16 +47,19 @@ p {
 }
 
 #home-view {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between; 
-    align-items: top;
-    flex-grow: 1; 
+    display: grid;
+    grid-template-areas:    "logo info"
+                            "logo schedule";
 }
 
 #brand-logo {
+    grid-area: "logo";
     width: 50%; 
     max-width: min(600px, 50vh);    
+}
+
+.past-shows-box {
+    grid-area: schedule
 }
 
 .responsive-img {
@@ -66,6 +69,7 @@ p {
 }
 
 #info-box {
+    grid-area: "info";
     padding-top: 20px;
     display: flex;
     flex-direction: column;
@@ -84,7 +88,7 @@ p {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    background-image: url('../css/pictures/play.png'); 
+    background-image: url('/pictures/play.png'); 
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -96,7 +100,7 @@ p {
 }
 
 .icon-button.is-playing {
-    background-image: url('../css/pictures/pause.png'); 
+    background-image: url('/pictures/pause.png'); 
 }
 
 .player-top-row {
@@ -340,7 +344,7 @@ p {
 
     body {
      
-        background-image: url('pictures/mobile-background\(1\).webp');
+        background-image: url('/pictures/mobile-background.webp');
     
     }   
     
