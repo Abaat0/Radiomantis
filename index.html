@@ -1,20 +1,30 @@
 <!DOCTYPE html>
-<html lang="en"> <head>
+<html lang="en">
+<head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Radiomantis</title>
+    <meta name="description" content="Radiomantis is an online community radio with live shows from resident DJs and selectors around the world.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Radiomantis">
+    <meta property="og:title" content="Radiomantis">
+    <meta property="og:description" content="Radiomantis is an online community radio with live shows from resident DJs and selectors around the world.">
+    <meta property="og:url" content="https://radiomantis.com/">
+    <meta property="og:image" content="https://radiomantis.com/css/pictures/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <style>
         html, body { background-color: #c8e476; }
     </style>
-    <link rel="icon" href="css/pictures/logofinal.avif" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="css/pictures/logov2.webp"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Castoro&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="css/pictures/favicon-32.png">
     <link rel="apple-touch-icon" href="css/pictures/app-icon.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="transparent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Castoro&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#c8e476">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
@@ -31,14 +41,14 @@
             <section id="info-box">
                 
                 <div id="social-links">
-                    <a href="https://www.instagram.com/radiomantis808" target="_blank"><img src="css/pictures/SoMe/instagram.svg" alt="Instagram"></a>
-                    <a href="https://www.mixcloud.com/radiomantis/" target="_blank"><img src="css/pictures/SoMe/mixcloud.svg" alt="Mixcloud"></a>
+                    <a href="https://www.instagram.com/radiomantis808" target="_blank" rel="noopener"><img src="css/pictures/SoMe/instagram.svg" alt="Instagram"></a>
+                    <a href="https://www.mixcloud.com/radiomantis/" target="_blank" rel="noopener"><img src="css/pictures/SoMe/mixcloud.svg" alt="Mixcloud"></a>
                 </div>
 
                 <div id="player-container">
                     <div class="player-top-row">
-                        <button id="play-pause-btn" class="icon-button" aria-label="Play/Pause" style="visibility: hidden;"></button>
-                        <div class="now-playing-label"><p id="status-label">offline</p></div>
+                        <button id="play-pause-btn" class="icon-button" aria-label="Play" style="visibility: hidden;"></button>
+                        <div class="now-playing-label"><p id="status-label" aria-live="polite">offline</p></div>
                     </div>
                     <div class="player-text">
                         <p id="main-player-text">check the schedule for upcoming shows</p>
@@ -50,12 +60,12 @@
         </main>
 
         <nav id="main-menu">
-            <a href="/" class="nav-link">home</a>
-            <a href="/schedule" class="nav-link wip-link">schedule</a>
-            <a href="/residents" class="nav-link wip-link">residents</a>
-            <a href="/past-shows" class="nav-link wip-link">past shows</a>
-            <a href="/about" class="nav-link wip-link">about us</a>
-            <a target="_blank" href="https://buymeacoffee.com/radiomantis" class="nav-link wip-link">donate</a>
+            <a href="/" class="nav-link" aria-current="page">home</a>
+            <a href="/schedule" class="nav-link">schedule</a>
+            <a href="/residents" class="nav-link">residents</a>
+            <a href="/past-shows" class="nav-link">past shows</a>
+            <a href="/about" class="nav-link">about us</a>
+            <a target="_blank" rel="noopener" href="https://buymeacoffee.com/radiomantis" class="nav-link">donate</a>
         </nav>
 
     </div>

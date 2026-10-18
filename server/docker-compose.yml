@@ -6,7 +6,10 @@ services:
     container_name: radiomantis-chat
     restart: unless-stopped
     environment:
-      - CHAT_ADMIN_TOKEN=skjolhoj
+      # Set the real token in server/.env on the VPS (not committed), e.g.
+      #   CHAT_ADMIN_TOKEN=some-long-random-string
+      - CHAT_ADMIN_TOKEN=${CHAT_ADMIN_TOKEN:-}
+      - CHAT_ALLOWED_ORIGINS=${CHAT_ALLOWED_ORIGINS:-https://radiomantis.com,https://www.radiomantis.com}
       - CHAT_HOST=0.0.0.0
       - CHAT_PORT=8081
     volumes:

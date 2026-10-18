@@ -1,5 +1,15 @@
 :root {
-    --navtextcolor: #DB1F26;
+    /* Colours (named as in the Radiomantis design system) */
+    --navtextcolor: #DB1F26;   /* mantis red: logo, links, accents */
+    --ink: #333333;            /* body text, link hover */
+    --leaf: #c8e476;           /* page ground under the texture */
+    --paper: #faf9f4;          /* chat drawer */
+    --paper-glass: rgba(250, 250, 244, 0.95);
+    --white: #ffffff;
+    --muted: #6b6b6b;          /* chat status, system lines, hints, timestamps (≥4.5:1 on paper) */
+    --me-green: #3f7d16;       /* your own nickname in the chat */
+    --rule: rgba(51, 51, 51, 0.3);
+    --hairline: rgba(51, 51, 51, 0.15);
     --bordercolor: transparent;
 
     /* Fluid type scale: clamp(min, floor + growth·vw, max).
@@ -25,10 +35,31 @@ body {
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
+    background-color: var(--leaf);
+}
+
+/* The texture sits on its own fixed layer so it stays put while scrolling */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;      /* below the plant (1) and the page (2) */
+    pointer-events: none;
     background-image: url('pictures/background.webp');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
+}
+
+/* Visible keyboard focus everywhere (ink is 8.9:1 on the green) */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+}
+/* Headings get focus after page changes for screen readers; no ring needed */
+h2[tabindex="-1"]:focus {
+    outline: none;
 }
 
 p {
@@ -50,7 +81,7 @@ p {
     display: flex;
     flex-direction: row;
     justify-content: space-between; 
-    align-items: top;
+    align-items: flex-start;
     flex-grow: 1; 
 }
 
@@ -155,7 +186,14 @@ p {
 }
 
 .nav-link:hover {
-    color: #333333;
+    color: var(--ink);
+}
+
+/* The page you're on */
+.nav-link[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
 }
 #plant {
     position: fixed;
@@ -189,6 +227,22 @@ p {
 
 .subpage-box p {
     font-weight: 600;
+}
+
+.subpage-box p + p {
+    margin-top: 1em;
+}
+
+.subpage-box a {
+    color: inherit;
+}
+
+/* Matches the old italic <h3> look, as a real quotation */
+.about-quote {
+    margin: 1em 0;
+    font-size: 1.17em;
+    font-weight: bold;
+    font-style: italic;
 }
 
 /* --- Past Shows Modifiers --- */
@@ -232,10 +286,6 @@ p {
     aspect-ratio: 3 / 4;
 }
 
-/* Hide text for Residents */
-.residents-grid .show-item p {
-    display: none;
-}
 .show-item img {
     width: 100%; 
     height: auto;
@@ -282,13 +332,10 @@ p {
     font-size: var(--fs-card);
     padding-bottom: 10px;
 }
-.schedule-day-group {
-    margin-bottom: 0; 
-}
 .nav-btn {
     background: none;
     border: none;
-    color: var(--navtextcolor);
+    color: var(--ink);
     font-family: 'Fraunces', serif;
     font-size: var(--fs-card);
     font-weight: 900;
@@ -298,7 +345,27 @@ p {
 
 .nav-btn:hover {
     transform: scale(1.05);
-    color: #333333;
+    color: var(--navtextcolor);
+}
+
+.nav-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.past-shows-more {
+    margin-top: 30px;
+}
+
+.past-shows-loading {
+    font-family: 'Castoro', serif;
+    font-size: 20px;
+}
+
+.schedule-empty {
+    font-size: 24px;
+    text-align: center;
+    margin-top: 40px;
 }
 
 .schedule-day-group {
@@ -309,7 +376,8 @@ p {
     font-family: 'Fraunces', serif;
     font-size: var(--fs-card);
     font-weight: 900;
-    color: #333333;
+    color: var(--ink);
+    margin-top: 0;
     margin-bottom: 15px;
     text-transform: uppercase;
 }
@@ -320,7 +388,7 @@ p {
     align-items: center;
     gap: 20px;
     padding: 10px 0;
-    border-bottom: 1px dotted rgba(51, 51, 51, 0.3);
+    border-bottom: 1px dotted var(--rule);
     font-family: 'Castoro', serif;
 }
 
@@ -338,11 +406,9 @@ p {
 /*Overwrites anything above if the width is less thant x*/
 @media (max-width: 768px) {
 
-    body {
-     
-        background-image: url('pictures/mobile-background\(1\).webp');
-    
-    }   
+    body::before {
+        background-image: url('pictures/mobile-background.webp');
+    }
     
     #app-frame {
         padding-top: calc(20px + env(safe-area-inset-top)); 
@@ -482,7 +548,7 @@ p {
     /* Make the time pop out since it's stacked now */
     .schedule-time {
         min-width: unset;
-        color: var(--navtextcolor);
+        color: var(--ink);
     }
 }
 
@@ -497,7 +563,7 @@ p {
     transform: translateY(-50%);
     z-index: 29;
     background-color: var(--navtextcolor);
-    color: #fff;
+    color: var(--white);
     font-family: 'Fraunces', serif;
     font-weight: 900;
     font-size: 1.1rem;
@@ -527,7 +593,7 @@ p {
     transition: transform 0.25s ease-in-out;
     display: flex;
     flex-direction: column;
-    background-color: rgba(250, 250, 244, 0.95);
+    background-color: var(--paper-glass);
     backdrop-filter: blur(4px);
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.25);
     font-family: 'Castoro', serif;
@@ -541,7 +607,7 @@ p {
     align-items: center;
     justify-content: space-between;
     padding: 16px 18px;
-    border-bottom: 1px solid rgba(51, 51, 51, 0.15);
+    border-bottom: 1px solid var(--hairline);
     font-family: 'Fraunces', serif;
     font-weight: 900;
     color: var(--navtextcolor);
@@ -562,7 +628,7 @@ p {
 #chat-status {
     padding: 6px 18px;
     font-size: 0.85rem;
-    color: #777;
+    color: var(--muted);
     text-align: center;
 }
 #chat-status.is-hidden {
@@ -577,7 +643,7 @@ p {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    color: #333;
+    color: var(--ink);
     font-size: 0.95rem;
     line-height: 1.35;
 }
@@ -586,7 +652,7 @@ p {
     overflow-wrap: anywhere;
 }
 .chat-msg-time {
-    color: #aaa;
+    color: var(--muted);
     font-size: 0.75em;
     margin-right: 0.5em;
     font-variant-numeric: tabular-nums;
@@ -598,10 +664,10 @@ p {
 }
 /* Your own nickname, so you can spot your messages at a glance */
 .chat-msg-nick--me {
-    color: #3f7d16;
+    color: var(--me-green);
 }
 .chat-msg--system {
-    color: #999;
+    color: var(--muted);
     font-style: italic;
     font-size: 0.85rem;
     text-align: center;
@@ -610,18 +676,18 @@ p {
 #chat-form,
 #chat-nick-gate {
     padding: 14px 18px;
-    border-top: 1px solid rgba(51, 51, 51, 0.15);
+    border-top: 1px solid var(--hairline);
 }
 #chat-input,
 #chat-nick-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid rgba(51, 51, 51, 0.3);
+    border: 1px solid var(--rule);
     border-radius: 6px;
     font-family: 'Castoro', serif;
     font-size: 0.95rem;
-    color: #333;
-    background: #fff;
+    color: var(--ink);
+    background: var(--white);
 }
 #chat-input:focus,
 #chat-nick-input:focus {
@@ -643,7 +709,7 @@ p {
     border: none;
     border-radius: 6px;
     background-color: var(--navtextcolor);
-    color: #fff;
+    color: var(--white);
     font-family: 'Fraunces', serif;
     font-weight: 900;
     font-size: 0.95rem;
@@ -652,7 +718,7 @@ p {
 .chat-hint {
     margin-top: 10px;
     font-size: 0.8rem;
-    color: #999;
+    color: var(--muted);
     text-align: center;
 }
 
@@ -671,7 +737,7 @@ p {
     #chat-drawer {
         width: 100vw;
         /* Solid on mobile so no page-green shows through the panel */
-        background-color: #faf9f4;
+        background-color: var(--paper);
         backdrop-filter: none;
     }
     /* Clear the iPhone home indicator so the input isn't hidden behind it */

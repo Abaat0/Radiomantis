@@ -6,9 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // The Google Doc schedule is the single source of truth for show/DJ names.
     const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
 
+    const SCHEDULE_MAX_AGE_MS = 10 * 60 * 1000; // re-fetch the sheet at most every 10 minutes
+    const PAST_SHOWS_PAGE = 24;                  // how many Mixcloud shows to load at a time
+
     let masterScheduleData = [];
+    let scheduleFetchedAt = 0;
+    let schedulePromise = null;
+    let scheduleError = false;
     let currentMonday;
     let chatInitialized = false;
+    // Past shows are cached for the whole visit, so going back to the page doesn't refetch.
+    let pastShows = [];
+    let pastShowsNext = 'https://api.mixcloud.com/radiomantis/cloudcasts/?limit=' + PAST_SHOWS_PAGE;
+    let pastShowsLoading = false;
 
 
     // ==========================================
@@ -16,14 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     init();
-    setInterval(updateRadioData, 15000);
+
+    // Poll now-playing every 15s, but not while the tab is in the background.
+    setInterval(() => {
+        if (document.visibilityState === 'visible') updateRadioData();
+    }, 15000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') updateRadioData();
+    });
 
     function init() {
         initLinks();
         initAudioPlayer();
+        initSchedule(); // sets up the week before loadGlobalSchedule() may draw it
         updateRadioData();
         loadGlobalSchedule();
-        initSchedule();
         loadPastShows();
         initChat();
     }
@@ -36,16 +53,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const playButton = document.getElementById('play-pause-btn');
         const audioStream = document.getElementById('radio-stream');
         if (!playButton || !audioStream) return;
-        const streamUrl = audioStream.src;
 
-        playButton.classList.toggle('is-playing', !audioStream.paused);
+        // Remember the stream URL across SPA navigations, since pausing removes the src attribute
+        if (audioStream.src) audioStream.dataset.stream = audioStream.src;
+        const streamUrl = audioStream.dataset.stream;
+
+        syncPlayButton();
         
         playButton.addEventListener('click', () => {
             if (audioStream.paused) {
                 // 1. Re-attach the stream URL right BEFORE playing to guarantee the live edge
                 audioStream.src = streamUrl;
                 audioStream.load(); 
-                audioStream.play();
+                audioStream.play()
+                    .catch((err) => console.error("Couldn't start the stream:", err))
+                    .finally(syncPlayButton);
             } else {
                 // 2. Pause the stream
                 audioStream.pause();
@@ -54,8 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 audioStream.removeAttribute('src'); 
                 audioStream.load(); 
             }
-            playButton.classList.toggle('is-playing', !audioStream.paused);
+            syncPlayButton();
         });
+    }
+
+    // Keep the button's look and its screen-reader label in step with the audio
+    function syncPlayButton() {
+        const playButton = document.getElementById('play-pause-btn');
+        const audioStream = document.getElementById('radio-stream');
+        if (!playButton || !audioStream) return;
+        const playing = !audioStream.paused;
+        playButton.classList.toggle('is-playing', playing);
+        playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     }
 
     async function updateRadioData() {
@@ -108,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: title,
                 artist: activeShow ? host : "Radiomantis",
                 artwork: [
-                    { src: 'css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/webp' }
+                    { src: '/css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/png' }
                 ]
             });
         }
@@ -126,8 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Force pause the audio if they were listening when the DJ logged off
         if (!audioStream.paused) {
             audioStream.pause();
-            playButton.classList.remove('is-playing');
+            audioStream.removeAttribute('src');
+            audioStream.load();
         }
+        syncPlayButton();
         
         statusLabel.textContent = "offline";
         mainText.textContent = "check the schedule for upcoming shows";
@@ -148,18 +182,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 4. SCHEDULE FUNCTIONS
     // ==========================================
-    async function loadGlobalSchedule() {
-        try {
-            const response = await fetch(SHEET_URL);
-            masterScheduleData = await response.json();
-            
-            // If they happen to be on the schedule page, draw it now that we have data
-            if (document.getElementById('schedule-container')) {
-                renderWeek();
-            }
-        } catch (error) {
-            console.error("Schedule fetch error:", error);
+    // Fetches the sheet once and reuses it across page changes; refreshes when older
+    // than SCHEDULE_MAX_AGE_MS. Concurrent callers share one request.
+    function loadGlobalSchedule() {
+        const fresh = scheduleFetchedAt && (Date.now() - scheduleFetchedAt < SCHEDULE_MAX_AGE_MS);
+        if (fresh) {
+            if (document.getElementById('schedule-container')) renderWeek();
+            return Promise.resolve(masterScheduleData);
         }
+        if (!schedulePromise) {
+            schedulePromise = fetch(SHEET_URL)
+                .then((response) => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then((rows) => {
+                    masterScheduleData = Array.isArray(rows) ? rows : [];
+                    scheduleFetchedAt = Date.now();
+                    scheduleError = false;
+                    // The player may have checked before the sheet arrived; name the show now
+                    updateRadioData();
+                })
+                .catch((error) => {
+                    scheduleError = true;
+                    console.error("Schedule fetch error:", error);
+                })
+                .finally(() => { schedulePromise = null; });
+        }
+        return schedulePromise.then(() => {
+            // If they happen to be on the schedule page, draw it now that we have data
+            if (document.getElementById('schedule-container')) renderWeek();
+            return masterScheduleData;
+        });
     }
 
     function initSchedule() {
@@ -191,26 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function loadSchedule() {
-        const scheduleContainer = document.getElementById('schedule-container');
-        if (!scheduleContainer) return;
-
-        try {
-            const response = await fetch(SHEET_URL);
-            masterScheduleData = await response.json();
-            renderWeek();
-        } catch (error) {
-            scheduleContainer.innerHTML = "<p>Couldn't load the schedule. Please try again later.</p>";
-            console.error("Schedule fetch error:", error);
-        }
-    }
-
     function renderWeek() {
         const scheduleContainer = document.getElementById('schedule-container');
         const weekLabel = document.getElementById('week-label');
         if (!scheduleContainer || !weekLabel) return;
 
-        scheduleContainer.innerHTML = ''; // Clear out the old HTML
+        scheduleContainer.textContent = ''; // Clear out the old rows
         
         // Calculate the Sunday of this week for the label
         const currentSunday = new Date(currentMonday);
@@ -236,6 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Filter the master data for shows happening on this specific date
             const daysShows = masterScheduleData.filter(show => {
+                // Skip half-filled rows in the sheet
+                if (!show.Start || !show.End) return false;
                 // Rule 1: Does it have a specific Date that matches today?
                 if (show.Date && show.Date === dateString) return true;
                 // Rule 2: Does it have NO specific date, but the Day matches?
@@ -249,11 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sort by start time (e.g., "12:00" comes before "16:00")
                 daysShows.sort((a, b) => a.Start.localeCompare(b.Start));
 
-                // Create the Day Header
-                let dayHtml = `
-                    <div class="schedule-day-group">
-                        <div class="schedule-day-title">${dayName}, ${currentDate.toLocaleDateString('en-US', formatOptions)}</div>
-                `;
+                // Create the Day Header (built with textContent so sheet text can't inject HTML)
+                const group = document.createElement('div');
+                group.className = 'schedule-day-group';
+                const title = document.createElement('h3');
+                title.className = 'schedule-day-title';
+                title.textContent = `${dayName}, ${currentDate.toLocaleDateString('en-US', formatOptions)}`;
+                group.appendChild(title);
                
                 // Add each show row
                 daysShows.forEach(show => {
@@ -273,28 +317,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dayDelta = Math.round((localMidnight - cetMidnight) / 86400000);
                     const marker = dayDelta > 0 ? ` (+${dayDelta})` : dayDelta < 0 ? ` (${dayDelta})` : '';
 
-                    dayHtml += `
-                        <div class="schedule-row">
-                            <div class="schedule-time">${fmt(startInstant)} - ${fmt(endInstant)}${marker}</div>
-                            <div class="schedule-info">${show.Show ? `${show.Show} w/ ` : ''}${show.DJ}</div>
-                        </div>
-                    `;
+                    const row = document.createElement('div');
+                    row.className = 'schedule-row';
+                    const time = document.createElement('div');
+                    time.className = 'schedule-time';
+                    time.textContent = `${fmt(startInstant)} - ${fmt(endInstant)}${marker}`;
+                    const info = document.createElement('div');
+                    info.className = 'schedule-info';
+                    info.textContent = `${show.Show ? `${show.Show} w/ ` : ''}${show.DJ || ''}`;
+                    row.append(time, info);
+                    group.appendChild(row);
                 });
 
-                dayHtml += `</div>`; // Close the group
-                scheduleContainer.insertAdjacentHTML('beforeend', dayHtml);
+                scheduleContainer.appendChild(group);
             }
         }
         
         // If the entire week is completely empty
-        if (scheduleContainer.innerHTML === '') {
-            scheduleContainer.innerHTML = '<p style="font-size: 24px; text-align: center; margin-top: 40px;">No shows scheduled for this week.</p>';
+        if (!scheduleContainer.hasChildNodes()) {
+            const empty = document.createElement('p');
+            empty.className = 'schedule-empty';
+            empty.textContent = scheduleError
+                ? "Couldn't load the schedule. Please try again later."
+                : 'No shows scheduled for this week.';
+            scheduleContainer.appendChild(empty);
         }
     }
 
     // ==========================================
     // 5. UTILITY FUNCTIONS
     // ==========================================
+
+    // "2026-04-06" from a Date's local fields
+    function localDateString(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
 
     // Find the Monday of whatever Date is passed to it
     function getMonday(d) {
@@ -344,8 +401,10 @@ document.addEventListener('DOMContentLoaded', () => {
         yesterday.setDate(now.getDate() - 1);
         const yesterdayName = yesterday.toLocaleDateString('en-US', { weekday: 'long' });
 
-        const dateStringToday = now.toISOString().split('T')[0];
-        const dateStringYesterday = yesterday.toISOString().split('T')[0];
+        // `now` holds Copenhagen wall-clock time in local fields, so format those fields
+        // directly; toISOString() would convert to UTC and give the wrong day near midnight.
+        const dateStringToday = localDateString(now);
+        const dateStringYesterday = localDateString(yesterday);
 
         let showDateObj = null;
         if ((show.Date && show.Date === dateStringToday) ||
@@ -415,81 +474,156 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. NAVIGATION
     // ==========================================
 
-    window.addEventListener("popstate", loadPage);
+    window.addEventListener("popstate", () => loadPage({ focus: false }));
 
-    async function loadPage() {
-        const newDocument = await new Promise((res, rej) => {
-            const req = new XMLHttpRequest();
-            req.open("GET", window.location.href);
-            req.responseType = "document";
-            req.onreadystatechange = () => {
-                if (req.readyState !== XMLHttpRequest.DONE) return;
-                if (req.status < 200 || 300 <= req.status) {
-                    history.go();
-                    rej();
-                }
-                res(req.responseXML);
-            };
-            req.send();
-        });
+    // Swap #app-frame for the new page's, so the <audio> and chat outside it keep going.
+    async function loadPage({ focus = true } = {}) {
+        const url = window.location.href;
+        let newDocument;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+            newDocument = new DOMParser().parseFromString(html, 'text/html');
+        } catch (error) {
+            // Anything unexpected: fall back to a normal page load
+            window.location.href = url;
+            return;
+        }
         const newFrame = newDocument.querySelector("#app-frame");
         if (newFrame === null) {
-            history.go();
+            window.location.href = url;
             return;
         }
         const oldFrame = document.querySelector("#app-frame");
-        oldFrame.replaceWith(newFrame);
+        oldFrame.replaceWith(document.importNode(newFrame, true));
         document.title = newDocument.title;
         init();
+
+        if (focus) {
+            window.scrollTo(0, 0);
+            // Move keyboard / screen-reader focus to the new page's heading
+            const heading = document.querySelector('#app-frame h2') || document.querySelector('#app-frame main');
+            if (heading) {
+                heading.setAttribute('tabindex', '-1');
+                heading.focus({ preventScroll: true });
+            }
+        }
     }
 
     // ==========================================
     // 7. PAST SHOWS (MIXCLOUD API)
     // ==========================================
 
-    async function loadPastShows() {
+    function loadPastShows() {
         const container = document.getElementById('past-shows-container');
         // Only run if we are on the past shows page
         if (!container) return; 
 
-        try {
-            // limited to 200 most recent this can be upped though
-            const response = await fetch('https://api.mixcloud.com/radiomantis/cloudcasts/?limit=200');
-            const mixcloudData = await response.json();
-
-            container.innerHTML = ''; 
-
-            // Loop through the shows Mixcloud gives us
-            mixcloudData.data.forEach(show => {
-
-                const imageUrl = show.pictures.large;
-                //removes date from the end if there
-                showName = show.name.split(' - ')[0]
-                showDate = show.name.split(' - ')[1]
-                
-                
-                // Build the HTML for the specific show
-                const showHtml = `
-                    <a href="${show.url}" target="_blank" class="show-item">
-                        <img src="${imageUrl}" alt="${showName}" loading="lazy">
-                        <p>${showName}</p>
-                        <span class="show-date">${showDate}</span>
-                    </a>
-                `;
-
-                container.insertAdjacentHTML('beforeend', showHtml);
-            });
-
-        } catch (error) {
-            console.error("Couldn't fetch past shows from Mixcloud:", error);
-            container.innerHTML = "<p>Couldn't load past shows. Please check our Mixcloud page directly.</p>";
+        container.textContent = '';
+        if (pastShows.length) {
+            pastShows.forEach((show) => container.appendChild(buildShowCard(show)));
+            renderMoreButton(container);
+        } else {
+            const loading = document.createElement('p');
+            loading.className = 'past-shows-loading';
+            loading.textContent = 'Loading transmissions...';
+            container.appendChild(loading);
+            fetchMorePastShows(container);
         }
     }
 
+    async function fetchMorePastShows(container) {
+        if (pastShowsLoading || !pastShowsNext) return;
+        pastShowsLoading = true;
+        const button = document.getElementById('past-shows-more');
+        if (button) { button.disabled = true; button.textContent = 'loading…'; }
+        try {
+            const response = await fetch(pastShowsNext);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const mixcloudData = await response.json();
+            const batch = Array.isArray(mixcloudData.data) ? mixcloudData.data : [];
+            pastShowsNext = (mixcloudData.paging && mixcloudData.paging.next) || null;
+            pastShows = pastShows.concat(batch);
+
+            // The page may have changed while we waited
+            const current = document.getElementById('past-shows-container');
+            if (current === container) {
+                const loading = container.querySelector('.past-shows-loading');
+                if (loading) loading.remove();
+                batch.forEach((show) => container.appendChild(buildShowCard(show)));
+                if (!pastShows.length) {
+                    const p = document.createElement('p');
+                    p.textContent = 'No past transmissions yet.';
+                    container.appendChild(p);
+                }
+                renderMoreButton(container);
+            }
+        } catch (error) {
+            console.error("Couldn't fetch past shows from Mixcloud:", error);
+            if (!pastShows.length) {
+                container.textContent = '';
+                const p = document.createElement('p');
+                p.textContent = "Couldn't load past shows. Please check our Mixcloud page directly.";
+                container.appendChild(p);
+            }
+        } finally {
+            pastShowsLoading = false;
+            const btn = document.getElementById('past-shows-more');
+            if (btn) { btn.disabled = false; btn.textContent = 'more transmissions'; }
+        }
+    }
+
+    // One card, built with textContent so show names can't inject HTML
+    function buildShowCard(show) {
+        // Names look like "Show name - date"; split off the date if there is one
+        const [showName, ...rest] = (show.name || '').split(' - ');
+        const showDate = rest.join(' - ');
+
+        const link = document.createElement('a');
+        link.className = 'show-item';
+        link.href = show.url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+
+        const img = document.createElement('img');
+        img.src = show.pictures ? show.pictures.large : '';
+        img.alt = showName;
+        img.loading = 'lazy';
+        const title = document.createElement('p');
+        title.textContent = showName;
+        link.append(img, title);
+
+        if (showDate) {
+            const date = document.createElement('span');
+            date.className = 'show-date';
+            date.textContent = showDate;
+            link.appendChild(date);
+        }
+        return link;
+    }
+
+    function renderMoreButton(container) {
+        const old = document.getElementById('past-shows-more');
+        if (old) old.remove();
+        if (!pastShowsNext) return;
+        const button = document.createElement('button');
+        button.id = 'past-shows-more';
+        button.type = 'button';
+        button.className = 'nav-btn past-shows-more';
+        button.textContent = 'more transmissions';
+        button.addEventListener('click', () => fetchMorePastShows(container));
+        container.after(button);
+    }
+
     function initLinks() {
-        document.querySelectorAll('a[href^="/"]').forEach((link) => {
+        document.querySelectorAll('#app-frame a[href^="/"]').forEach((link) => {
             link.addEventListener("click", (e) => {
+                // Let the browser handle new-tab / new-window clicks and downloads
+                if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if (link.target && link.target !== '_self') return;
                 e.preventDefault();
+                if (link.href === window.location.href) return; // already here
                 history.pushState(null, "", link.href);
                 loadPage();
             });
@@ -659,19 +793,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // ---- events ----
-        toggle.addEventListener('click', () => {
-            const open = drawer.classList.toggle('open');
+        // `inert` keeps keyboard focus out of the drawer while it's slid off-screen
+        function setDrawerOpen(open) {
+            drawer.classList.toggle('open', open);
             drawer.setAttribute('aria-hidden', String(!open));
+            drawer.inert = !open;
             toggle.setAttribute('aria-expanded', String(open));
             fitViewport();
             if (open) (nick ? msgInput : nickInput).focus();
+        }
+        drawer.inert = !drawer.classList.contains('open');
+
+        toggle.addEventListener('click', () => {
+            setDrawerOpen(!drawer.classList.contains('open'));
         });
         closeBtn.addEventListener('click', () => {
-            drawer.classList.remove('open');
-            drawer.setAttribute('aria-hidden', 'true');
-            toggle.setAttribute('aria-expanded', 'false');
-            drawer.style.height = '';
-            drawer.style.top = '';
+            setDrawerOpen(false);
+            toggle.focus();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && drawer.classList.contains('open')) {
+                setDrawerOpen(false);
+                toggle.focus();
+            }
         });
         nickForm.addEventListener('submit', (e) => {
             e.preventDefault();
