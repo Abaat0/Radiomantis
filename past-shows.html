@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="past-shows">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -23,39 +23,65 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Castoro&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#c8e476">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..900&family=Schibsted+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#db1f26">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-    <img src="css/pictures/plant-background.webp" id="plant" alt="" aria-hidden="true">
-    <div id="app-frame">
-        
-        <main id="home-view">
+    <a class="skip-link" href="#app-frame">skip to content</a>
 
-           <section id="info-box" class="past-shows-box">
-                <h2>Past Transmissions</h2>
-                
-                <div id="past-shows-container" class="shows-grid">
-                    <p class="past-shows-loading">Loading transmissions...</p>
-                </div>
-
-            </section>
-        </main>
-
-        <nav id="main-menu">
-            <a href="/" class="nav-link">home</a>
-            <a href="/schedule" class="nav-link">schedule</a>
-            <a href="/residents" class="nav-link">residents</a>
-            <a href="/past-shows" class="nav-link" aria-current="page">past shows</a>
-            <a href="/about" class="nav-link">about us</a>
-            <a target="_blank" rel="noopener" href="https://buymeacoffee.com/radiomantis" class="nav-link">donate</a>
-        </nav>
+    <!-- On-air strip: lives outside #app-frame so the player keeps going across pages -->
+    <div class="onair" id="onair" data-state="offline">
+        <div class="onair-inner">
+            <button id="play-pause-btn" class="icon-button" type="button" aria-label="Play" hidden></button>
+            <p class="onair-status"><span class="onair-dot" aria-hidden="true"></span><span id="status-label" aria-live="polite">off air</span></p>
+            <p id="main-player-text" class="onair-show">check the schedule for upcoming shows</p>
+            <button id="chat-toggle" class="onair-chat" type="button" aria-expanded="false" aria-controls="chat-drawer">chat</button>
+        </div>
     </div>
 
-    <!-- Live chat:  -->
-    <button id="chat-toggle" type="button" aria-label="Open chat" aria-expanded="false">chat</button>
+    <header class="site-header">
+        <a href="/" class="brand" aria-label="Radiomantis home">
+            <img src="css/pictures/app-icon-192.png" alt="" width="52" height="52">
+            <span class="brand-name">radiomantis</span>
+        </a>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">menu</button>
+        <nav class="site-nav" id="site-nav" aria-label="Main">
+            <ul>
+                <li><a href="/" class="nav-link">home</a></li>
+                <li><a href="/schedule" class="nav-link">schedule</a></li>
+                <li><a href="/residents" class="nav-link">residents</a></li>
+                <li><a href="/past-shows" class="nav-link" aria-current="page">past shows</a></li>
+                <li><a href="/about" class="nav-link">about us</a></li>
+                <li><a href="https://buymeacoffee.com/radiomantis" class="nav-link nav-link--donate" target="_blank" rel="noopener">donate</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="app-frame" tabindex="-1">
+        <main class="page page-past" data-page="past-shows">
+            <header class="page-head">
+                <h1 class="page-title">past transmissions</h1>
+                <p class="page-intro">Every show we've archived, newest first. Listen back on Mixcloud.</p>
+            </header>
+            <div id="past-shows-container" class="shows-grid">
+                <p class="past-shows-loading">loading transmissions…</p>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <p class="footer-about">Radiomantis is an online community radio, founded in Aarhus in 2025 and now based in Turin.</p>
+        <ul class="footer-links">
+            <li><a href="https://www.instagram.com/radiomantis808" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.mixcloud.com/radiomantis/" target="_blank" rel="noopener">Mixcloud</a></li>
+            <li><a href="https://buymeacoffee.com/radiomantis" target="_blank" rel="noopener">Donate</a></li>
+            <li><a href="mailto:play@radiomantis.com">play@radiomantis.com</a></li>
+        </ul>
+    </footer>
+
+    <!-- Live chat -->
     <aside id="chat-drawer" aria-hidden="true" aria-label="Live chat">
         <div id="chat-header">
             <span id="chat-title">chat</span>
@@ -69,13 +95,13 @@
         <div id="chat-nick-gate">
             <form id="chat-nick-form" autocomplete="off">
                 <label for="chat-nick-input">pick a name to chat</label>
-                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name" aria-label="Nickname">
+                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name">
                 <button type="submit">join</button>
             </form>
         </div>
     </aside>
 
     <audio id="radio-stream" src="https://radiomantis.com/listen/radiomantis/radio.mp3" preload="none"></audio>
-    <script src="javascript/script.js"></script> 
+    <script src="javascript/script.js"></script>
 </body>
 </html>
