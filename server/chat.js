@@ -11,6 +11,9 @@
  *   CHAT_HOST          interface to bind                  (default 127.0.0.1)
  *   CHAT_ADMIN_TOKEN   secret; connect ?token=... to mod  (default: admin disabled)
  *   CHAT_DATA_FILE     history/bans persistence path      (default ./data/chat.json)
+ *   CHAT_ALLOWED_ORIGINS  comma-separated page origins allowed to connect
+ *                      (default https://radiomantis.com,https://www.radiomantis.com;
+ *                       http://localhost and http://127.0.0.1 on any port always work)
  */
 
 'use strict';
@@ -24,6 +27,10 @@ const PORT = Number(process.env.CHAT_PORT) || 8081;
 const HOST = process.env.CHAT_HOST || '127.0.0.1';
 const ADMIN_TOKEN = process.env.CHAT_ADMIN_TOKEN || '';
 const DATA_FILE = process.env.CHAT_DATA_FILE || path.join(__dirname, 'data', 'chat.json');
+const ALLOWED_ORIGINS = (process.env.CHAT_ALLOWED_ORIGINS || 'https://radiomantis.com,https://www.radiomantis.com')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
 
 const HISTORY_LIMIT = 50;      // messages replayed to new joiners
 const MAX_MSG_LEN = 500;       // characters
@@ -89,9 +96,11 @@ function sanitizeNick(raw) {
   return nick || 'anon';
 }
 
+// The proxy appends the real client address as the LAST X-Forwarded-For entry; anything
+// before it came from the client and can be forged (which would let a banned user dodge bans).
 function clientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
-  if (fwd) return fwd.split(',')[0].trim();
+  if (fwd) return fwd.split(',').pop().trim();
   return (req.socket.remoteAddress || '').replace(/^::ffff:/, '');
 }
 
@@ -114,8 +123,25 @@ function pushHistory(msg) {
   saveStore();
 }
 
+// Only accept sockets opened by our own pages, so other websites can't embed or post to the chat.
+function originAllowed(origin) {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1');
+  } catch {
+    return false;
+  }
+}
+
 // ---- Server -----------------------------------------------------------------
-const wss = new WebSocketServer({ host: HOST, port: PORT, path: '/chat' });
+const wss = new WebSocketServer({
+  host: HOST,
+  port: PORT,
+  path: '/chat',
+  verifyClient: ({ origin }) => originAllowed(origin),
+});
 
 wss.on('connection', (ws, req) => {
   const ip = clientIp(req);
@@ -237,3 +263,4 @@ function handleAdminCommand(ws, text) {
 console.log(`Radiomantis chat listening on ws://${HOST}:${PORT}/chat`);
 console.log(`  admin: ${ADMIN_TOKEN ? 'enabled (token set)' : 'disabled (no CHAT_ADMIN_TOKEN)'}`);
 console.log(`  data:  ${DATA_FILE}`);
+console.log(`  origins: ${ALLOWED_ORIGINS.join(', ')} (+ localhost)`);

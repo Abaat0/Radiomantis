@@ -35,6 +35,7 @@ CHAT_ADMIN_TOKEN=some-secret node chat.js
 | `CHAT_HOST`        | `127.0.0.1`         | Interface to bind (the Docker image sets `0.0.0.0`)  |
 | `CHAT_ADMIN_TOKEN` | *(empty)*           | Secret; enables moderator mode. Empty = no admin.    |
 | `CHAT_DATA_FILE`   | `./data/chat.json`  | History + ban-list persistence path                  |
+| `CHAT_ALLOWED_ORIGINS` | `https://radiomantis.com,https://www.radiomantis.com` | Page origins allowed to open a socket (localhost always allowed) |
 
 ## Moderation
 
@@ -56,7 +57,9 @@ token rides in it.
   cannot inject markup or scripts. The server also strips control characters.
 - 500-char message cap, 24-char nick cap.
 - Rate limit: ~5 messages / 5 seconds per connection.
-- Client IP is read from the proxy's `X-Forwarded-For` header (used for bans).
+- Client IP is the *last* entry of the proxy's `X-Forwarded-For` header (used for bans), so a
+  client can't forge it by sending its own header.
+- Only pages on `CHAT_ALLOWED_ORIGINS` (plus localhost) can connect; other websites are refused.
 - The container binds `0.0.0.0` but publishes no host port, so it's reachable only from the
   internal Docker network, not the public internet.
 
@@ -76,7 +79,8 @@ NPM proxies to it by its address on that network — exactly like AzuraCast.
    cd ~/website/server
    docker compose up -d --build
    ```
-   Set your real token in `docker-compose.yml` (`CHAT_ADMIN_TOKEN`). The container joins
+   Put your real token in `server/.env` on the VPS (copy `.env.example`; the file is
+   git-ignored, so `git reset --hard` in the deploy leaves it alone). The container joins
    `proxy_network` as `radiomantis-chat` and listens on `8081`.
 3. Find its address on `proxy_network`:
    ```bash
