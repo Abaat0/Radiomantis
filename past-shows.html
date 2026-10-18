@@ -18,6 +18,15 @@
         html, body { background-color: #c8e476; }
     </style>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/looks.css">
+    <script>
+        // Preview a background direction: ?look=bokeh | notes | poster (remembered for the visit)
+        (function () {
+            var q = new URLSearchParams(location.search).get('look');
+            try { if (q) sessionStorage.setItem('rm-look', q); q = q || sessionStorage.getItem('rm-look'); } catch (e) {}
+            document.documentElement.dataset.look = q || 'bokeh';
+        })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="css/pictures/favicon-32.png">
     <link rel="apple-touch-icon" href="css/pictures/app-icon.png">
     <link rel="manifest" href="/manifest.json">
@@ -29,6 +38,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+    <div class="bokeh" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span><span class="b5"></span><span class="b6"></span><span class="b7"></span></div>
+    <div class="poster-shapes" aria-hidden="true"><span class="ps-mint"></span><span class="ps-pink"></span></div>
     <a class="skip-link" href="#app-frame">skip to content</a>
 
     <!-- On-air strip: lives outside #app-frame so the player keeps going across pages -->
@@ -72,6 +83,8 @@
     </div>
 
     <footer class="site-footer">
+        <img class="mascot" src="css/pictures/mantis.webp" alt="" width="360" height="360" title="hello">
+        <span class="mascot-tag" aria-hidden="true">fig. 1, the listener</span>
         <p class="footer-about">Radiomantis is an online community radio, founded in Aarhus in 2025 and now based in Turin.</p>
         <ul class="footer-links">
             <li><a href="https://www.instagram.com/radiomantis808" target="_blank" rel="noopener">Instagram</a></li>

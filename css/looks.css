@@ -1,0 +1,181 @@
+/* ==========================================================
+   Background directions (preview). Pick one with ?look=bokeh | notes | poster
+   ========================================================== */
+
+/* ---------- shared: the little mantis ---------- */
+
+.mascot {
+    position: absolute;
+    right: 6%;
+    bottom: 100%;
+    width: 112px;
+    height: auto;
+    margin-bottom: -8px;               /* feet on the footer rule */
+    transform-origin: 55% 95%;
+    transition: transform 0.3s ease;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.site-footer { position: relative; }
+.mascot:hover { transform: rotate(-8deg) scale(1.06); }
+/* While the stream plays, it dances (slowly) */
+html[data-playing] .mascot { animation: mascot-dance 1.9s ease-in-out infinite; }
+@keyframes mascot-dance {
+    0%, 100% { transform: rotate(-4deg) translateY(0); }
+    25% { transform: rotate(3deg) translateY(-3px); }
+    50% { transform: rotate(-2deg) translateY(0); }
+    75% { transform: rotate(5deg) translateY(-4px); }
+}
+
+/* ==========================================================
+   A. MANTIS-EYE VIEW: the world from inside the flowers.
+   Soft, motion-blurred flower colours like the residents' posters,
+   under riso grain. Drifts slowly while the stream plays.
+   ========================================================== */
+
+html[data-look="bokeh"] body { background-color: #d8efa0; }
+html[data-look="bokeh"] body::before { opacity: 0.55; z-index: 1; }   /* grain over the blur */
+
+html[data-look="bokeh"] .bokeh {
+    position: fixed;
+    inset: -10%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(60px) saturate(1.1);
+}
+html[data-look="bokeh"] .bokeh span {
+    position: absolute;
+    border-radius: 50%;
+}
+/* Petals and sky smeared like a bug flying past: wide ellipses */
+html[data-look="bokeh"] .bokeh .b1 { left: -6%;  top: -4%;  width: 58%; height: 34%; background: #bfeedd; }   /* mint sky */
+html[data-look="bokeh"] .bokeh .b2 { right: -8%; top: 6%;   width: 46%; height: 30%; background: #c9e6ff; }   /* pale sky */
+html[data-look="bokeh"] .bokeh .b3 { left: -2%;  top: 46%;  width: 36%; height: 24%; background: #ffde6e; }   /* buttercup */
+html[data-look="bokeh"] .bokeh .b4 { right: -4%; top: 50%;  width: 34%; height: 28%; background: #ffc7da; }   /* pink clover */
+html[data-look="bokeh"] .bokeh .b5 { left: 34%;  top: 78%;  width: 40%; height: 24%; background: #ffc9ae; }   /* poppy, far away */
+html[data-look="bokeh"] .bokeh .b6 { left: 30%;  top: 22%;  width: 36%; height: 30%; background: #d8efa0; }   /* leaf */
+html[data-look="bokeh"] .bokeh .b7 { right: 20%; top: 84%;  width: 30%; height: 18%; background: #b9e58e; }   /* grass */
+
+html[data-look="bokeh"][data-playing] .bokeh span { animation: bokeh-drift 18s ease-in-out infinite alternate; }
+html[data-look="bokeh"][data-playing] .bokeh .b2,
+html[data-look="bokeh"][data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: alternate-reverse; }
+@keyframes bokeh-drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(6%, -4%) scale(1.12); }
+}
+
+/* Lines a touch stronger so they hold over the colour */
+html[data-look="bokeh"] { --rule: rgba(34, 48, 26, 0.28); }
+
+/* ==========================================================
+   B. FIELD NOTES: the station as a naturalist's study of one
+   very musical insect. Millimetre paper, a specimen label,
+   a ruler in the footer.
+   ========================================================== */
+
+html[data-look="notes"] body {
+    background-color: #eef4d0;
+    background-image:
+        linear-gradient(rgba(77, 92, 53, 0.13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(77, 92, 53, 0.13) 1px, transparent 1px),
+        linear-gradient(rgba(77, 92, 53, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(77, 92, 53, 0.055) 1px, transparent 1px);
+    background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+}
+html[data-look="notes"] body::before { opacity: 0.18; }
+
+.specimen-label { display: none; }
+html[data-look="notes"] .hero-logo { position: relative; }
+html[data-look="notes"] .specimen-label {
+    display: block;
+    position: absolute;
+    left: -9%;
+    top: 3%;
+    width: 15.5rem;
+    padding: 12px 14px 12px;
+    background: #fbfdf0;
+    border: 1px solid var(--moss);
+    box-shadow: 3px 3px 0 rgba(34, 48, 26, 0.18);
+    transform: rotate(-2.5deg);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--moss);
+}
+.specimen-label .latin {
+    display: block;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    color: var(--mantis-deep);
+}
+.specimen-label dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; }
+.specimen-label dt { color: var(--moss-soft); }
+.specimen-label dd { margin: 0; }
+
+/* A ruler along the top of the footer */
+html[data-look="notes"] .site-footer::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: -1px;
+    height: 12px;
+    background:
+        repeating-linear-gradient(90deg, var(--moss) 0 1px, transparent 1px 50px) top / 100% 12px no-repeat,
+        repeating-linear-gradient(90deg, var(--moss) 0 1px, transparent 1px 10px) top / 100% 6px no-repeat;
+}
+html[data-look="notes"] .mascot { width: 100px; }
+html[data-look="notes"] .mascot-tag { display: block; }
+.mascot-tag { display: none; }
+html[data-look="notes"] .mascot-tag {
+    position: absolute;
+    right: calc(6% + 108px);
+    bottom: calc(100% + 26px);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: var(--moss-soft);
+}
+
+/* ==========================================================
+   C. RISO POSTER: the site as a gig poster. Two extra riso inks,
+   sun yellow and fluorescent pink, printed as big discs that
+   overprint (multiply) into orange where they cross.
+   ========================================================== */
+
+.poster-shapes { display: none; }
+html[data-look="poster"] .poster-shapes {
+    display: block;
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 1500px;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+html[data-look="poster"] .poster-shapes span {
+    position: absolute;
+    border-radius: 50%;
+    mix-blend-mode: multiply;
+}
+/* Yellow sun behind the logo */
+html[data-look="poster"] .ps-mint  { width: 46vw; height: 46vw; max-width: 720px; max-height: 720px; left: -6vw;  top: 40px;  background: #ffe066; }
+/* Pink moon crossing it, printed a hair off-register */
+html[data-look="poster"] .ps-pink  { width: 24vw; height: 24vw; max-width: 380px; max-height: 380px; left: 30vw; top: 470px; background: #ff9fbf; }
+html[data-look="poster"] .site-header,
+html[data-look="poster"] #app-frame { position: relative; z-index: 2; }
+html[data-look="poster"] body::before { opacity: 0.45; z-index: 3; }
+html[data-look="poster"] .hero-text { background: none; }
+
+@media (max-width: 820px) {
+    html[data-look="notes"] .specimen-label { position: relative; left: auto; top: auto; margin: 18px auto 0; width: 14rem; }
+    html[data-look="poster"] .ps-mint { width: 90vw; height: 90vw; left: -20vw; top: 90px; }
+    html[data-look="poster"] .ps-pink { width: 56vw; height: 56vw; left: 52vw; top: 700px; }
+    .mascot { width: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-playing] .mascot,
+    html[data-look="bokeh"][data-playing] .bokeh span { animation: none; }
+}

@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!playButton || !audioStream) return;
         const playing = !audioStream.paused;
         playButton.classList.toggle('is-playing', playing);
+        // Lets the page react while the stream plays (the mantis dances, the colours drift)
+        document.documentElement.toggleAttribute('data-playing', playing);
         playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     }
 
