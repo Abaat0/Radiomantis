@@ -97,6 +97,70 @@ a:hover { color: var(--moss); }
 }
 .skip-link:focus { top: var(--s2); }
 
+/* ---------- background: the mantis-eye view ----------
+   The world from inside the flowers, like the residents' posters: soft,
+   blurred patches of sky, buttercup, clover and poppy under the riso grain.
+   Drifts slowly while the stream plays. */
+
+body { background-color: #d8efa0; }
+body::before { opacity: 0.55; z-index: 1; }   /* grain over the blur */
+
+.bokeh {
+    position: fixed;
+    inset: -10%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(60px) saturate(1.1);
+}
+.bokeh span {
+    position: absolute;
+    border-radius: 50%;
+}
+/* Petals and sky smeared like a bug flying past: wide ellipses */
+.bokeh .b1 { left: -6%;  top: -4%;  width: 58%; height: 34%; background: #bfeedd; }   /* mint sky */
+.bokeh .b2 { right: -8%; top: 6%;   width: 46%; height: 30%; background: #c9e6ff; }   /* pale sky */
+.bokeh .b3 { left: -2%;  top: 46%;  width: 36%; height: 24%; background: #ffde6e; }   /* buttercup */
+.bokeh .b4 { right: -4%; top: 50%;  width: 34%; height: 28%; background: #ffc7da; }   /* pink clover */
+.bokeh .b5 { left: 34%;  top: 78%;  width: 40%; height: 24%; background: #ffc9ae; }   /* poppy, far away */
+.bokeh .b6 { left: 30%;  top: 22%;  width: 36%; height: 30%; background: #d8efa0; }   /* leaf */
+.bokeh .b7 { right: 20%; top: 84%;  width: 30%; height: 18%; background: #b9e58e; }   /* grass */
+
+html[data-playing] .bokeh span { animation: bokeh-drift 18s ease-in-out infinite alternate; }
+html[data-playing] .bokeh .b2,
+html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: alternate-reverse; }
+@keyframes bokeh-drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(6%, -4%) scale(1.12); }
+}
+
+/* Lines a touch stronger so they hold over the colour */
+{ --rule: rgba(34, 48, 26, 0.28); }
+
+/* ---------- the little mantis on the footer line ---------- */
+
+.mascot {
+    position: absolute;
+    right: 6%;
+    bottom: 100%;
+    width: 112px;
+    height: auto;
+    margin-bottom: -8px;               /* feet on the footer rule */
+    transform-origin: 55% 95%;
+    transition: transform 0.3s ease;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.site-footer { position: relative; }
+.mascot:hover { transform: rotate(-8deg) scale(1.06); }
+/* While the stream plays, it dances (slowly) */
+html[data-playing] .mascot { animation: mascot-dance 1.9s ease-in-out infinite; }
+@keyframes mascot-dance {
+    0%, 100% { transform: rotate(-4deg) translateY(0); }
+    25% { transform: rotate(3deg) translateY(-3px); }
+    50% { transform: rotate(-2deg) translateY(0); }
+    75% { transform: rotate(5deg) translateY(-4px); }
+}
+
 /* ---------- on-air strip ---------- */
 
 .onair {
@@ -205,25 +269,9 @@ a:hover { color: var(--moss); }
     padding: var(--s5) var(--gutter);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;   /* menu sits on the left, no logo in the bar */
     gap: var(--s5);
 }
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--s3);
-    text-decoration: none;
-    color: var(--mantis);
-}
-.brand img { width: 52px; height: 52px; }
-.brand-name {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 1.625rem;
-    letter-spacing: -0.01em;
-}
-.brand:hover { color: var(--mantis); }
 
 .site-nav ul {
     display: flex;
@@ -363,6 +411,12 @@ a:hover { color: var(--moss); }
 .up-next-dj { color: var(--moss-soft); font-weight: 400; }
 .up-next-item.is-live .up-next-when { color: var(--mantis-deep); }
 
+.up-next-note {
+    margin-top: var(--s3);
+    font-size: var(--fs-small);
+    color: var(--moss-soft);
+}
+
 .up-next-empty {
     padding: var(--s3) 0;
     border-top: 1px solid var(--rule);
@@ -437,91 +491,6 @@ a:hover { color: var(--moss); }
 .nav-btn:hover { background: var(--moss); color: var(--leaf-pale); }
 .nav-btn:disabled { opacity: 0.55; cursor: default; }
 .nav-btn:disabled:hover { background: transparent; color: var(--moss); }
-
-/* ---------- schedule ---------- */
-
-.week-nav {
-    display: flex;
-    align-items: center;
-    gap: var(--s4);
-    margin-bottom: var(--s6);
-}
-.week-label {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--fs-h3);
-    min-width: 11ch;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-}
-
-.schedule { border-top: 1.5px solid var(--moss); }
-
-.schedule-day-group {
-    display: grid;
-    grid-template-columns: 14rem 1fr;
-    gap: var(--s5);
-    padding: var(--s5) 0;
-    border-bottom: 1px solid var(--rule);
-}
-
-.schedule-day-title {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: var(--fs-h3);
-    line-height: 1.2;
-    text-transform: lowercase;
-}
-.schedule-day-date {
-    display: block;
-    margin-top: var(--s1);
-    font-family: var(--font-text);
-    font-weight: 400;
-    font-size: var(--fs-small);
-    color: var(--moss-soft);
-    text-transform: none;
-}
-.schedule-day-group.is-today .schedule-day-title { color: var(--mantis); }
-.schedule-day-group.is-today .schedule-day-date { color: var(--mantis-deep); font-weight: 600; }
-
-.schedule-row {
-    display: grid;
-    grid-template-columns: 10rem 1fr;
-    gap: var(--s4);
-    padding: var(--s2) 0;
-    align-items: baseline;
-}
-.schedule-row + .schedule-row { border-top: 1px dashed var(--rule); }
-
-.schedule-time {
-    font-size: var(--fs-small);
-    font-weight: 600;
-    color: var(--moss-soft);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-.schedule-info { font-weight: 600; font-size: var(--fs-body); }
-.schedule-dj { font-weight: 400; color: var(--moss-soft); }
-
-.schedule-row.is-live .schedule-time,
-.schedule-row.is-live .schedule-info { color: var(--mantis-deep); }
-.schedule-live-tag {
-    display: inline-block;
-    margin-left: var(--s2);
-    padding: 0 8px;
-    border-radius: 999px;
-    background: var(--mantis);
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1.6;
-    vertical-align: 2px;
-}
-
-.schedule-empty {
-    padding: var(--s7) 0;
-    color: var(--moss-soft);
-}
 
 /* ---------- residents ---------- */
 
@@ -785,8 +754,6 @@ a:hover { color: var(--moss); }
     .onair-status { padding: 2px 10px 2px 8px; font-size: 0.8125rem; }
 
     .site-header { padding-top: var(--s4); padding-bottom: var(--s4); }
-    .brand img { width: 44px; height: 44px; }
-    .brand-name { font-size: 1.375rem; }
 
     .menu-toggle {
         display: inline-block;
@@ -838,24 +805,17 @@ a:hover { color: var(--moss); }
     .resident figcaption { flex-direction: column; gap: 2px; }
     .show-item p, .resident-name { font-size: 1.0625rem; }
 
-    .week-nav {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--s3);
-    }
-    .week-label { grid-column: 1 / -1; grid-row: 1; text-align: left; min-width: 0; }
-    .week-nav .nav-btn { width: 100%; }
-    .nav-btn { padding: 7px 14px; }
 
-    .schedule-day-group { grid-template-columns: 1fr; gap: var(--s3); }
-    .schedule-row { grid-template-columns: 1fr; gap: 0; padding: var(--s2) 0; }
 
     .about { grid-template-columns: 1fr; }
 
     #chat-drawer { border-left: none; }
+    .mascot { width: 84px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+    html[data-playing] .mascot,
+    html[data-playing] .bokeh span { animation: none; }
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }

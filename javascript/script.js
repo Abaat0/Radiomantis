@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let scheduleFetchedAt = 0;
     let schedulePromise = null;
     let scheduleError = false;
-    let currentMonday;
     let chatInitialized = false;
     // Past shows are cached for the whole visit, so going back to the page doesn't refetch.
     let pastShows = [];
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         initLinks(document.getElementById('app-frame'));
         setCurrentNav();
-        initSchedule(); // sets up the week before loadGlobalSchedule() may draw it
+        setTimezoneNote();
         loadGlobalSchedule();
         loadPastShows();
         loadLatestShows();
@@ -209,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const next = getUpcomingShows(1).find((o) => o.start > new Date());
         const text = next
             ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}`
-            : 'check the schedule for upcoming shows';
+            : 'off air for now';
         setStripState('offline', 'off air', text.toLowerCase());
     }
 
@@ -271,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderScheduleViews() {
-        if (document.getElementById('schedule-container')) renderWeek();
         if (document.getElementById('up-next-list')) renderUpNext();
     }
 
@@ -301,12 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return occurrences.slice(0, limit);
     }
 
-    // Home: the next three shows
+    // Home: the next five shows (this is the whole schedule now)
     function renderUpNext() {
         const list = document.getElementById('up-next-list');
         if (!list) return;
         list.textContent = '';
-        const upcoming = getUpcomingShows(3);
+        const upcoming = getUpcomingShows(5);
         if (!upcoming.length) {
             const li = document.createElement('li');
             li.className = 'up-next-empty';
@@ -336,154 +334,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function initSchedule() {
-        if (!document.getElementById('schedule-container')) return;
-
-        // Reflect that times are shown in the users local zone, not CET
+    // Under "up next": say which timezone the times are in
+    function setTimezoneNote() {
         const tzNote = document.getElementById('tz-note');
-        if (tzNote) {
-            const abbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
-            tzNote.textContent = `All times are in your timezone (${abbr}). A +1 means the show starts the next day.`;
-        }
-
-        currentMonday = getMonday(new Date());
-        
-        const prevBtn = document.getElementById('prev-week-btn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                currentMonday.setDate(currentMonday.getDate() - 7);
-                renderWeek();
-            });
-        }
-
-        const nextBtn = document.getElementById('next-week-btn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                currentMonday.setDate(currentMonday.getDate() + 7);
-                renderWeek();
-            });
-        }
-    }
-
-    function renderWeek() {
-        const scheduleContainer = document.getElementById('schedule-container');
-        const weekLabel = document.getElementById('week-label');
-        if (!scheduleContainer || !weekLabel) return;
-
-        scheduleContainer.textContent = ''; // Clear out the old rows
-        
-        // Calculate the Sunday of this week for the label
-        const currentSunday = new Date(currentMonday);
-        currentSunday.setDate(currentMonday.getDate() + 6);
-        
-        // Format label: e.g., "Apr 6 - Apr 12"
-        const formatOptions = { month: 'short', day: 'numeric' };
-        weekLabel.textContent = `${currentMonday.toLocaleDateString('en-US', formatOptions)} – ${currentSunday.toLocaleDateString('en-US', formatOptions)}`.toLowerCase();
-
-        // Loop through 7 days of the week (0 = Monday, 6 = Sunday)
-        for (let i = 0; i < 7; i++) {
-            const currentDate = new Date(currentMonday);
-            currentDate.setDate(currentMonday.getDate() + i);
-            
-            // Get string formats for matching ("Monday" and "2026-04-06")
-            const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-            const year = currentDate.getFullYear();
-            const monthIndex = currentDate.getMonth();
-            const dayNum = currentDate.getDate();
-            const month = String(monthIndex + 1).padStart(2, '0');
-            const day = String(dayNum).padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`
-
-            // Filter the master data for shows happening on this specific date
-            const daysShows = masterScheduleData.filter(show => {
-                // Skip half-filled rows in the sheet
-                if (!show.Start || !show.End) return false;
-                // Rule 1: Does it have a specific Date that matches today?
-                if (show.Date && show.Date === dateString) return true;
-                // Rule 2: Does it have NO specific date, but the Day matches?
-                if ((!show.Date || show.Date.trim() === "") && show.Day === dayName) return true;
-                return false;
-            });
-
-            // If there are shows today, sort them by start time and build the HTML
-            if (daysShows.length > 0) {
-                
-                // Sort by start time (e.g., "12:00" comes before "16:00")
-                daysShows.sort((a, b) => a.Start.localeCompare(b.Start));
-
-                // Create the Day Header (built with textContent so sheet text can't inject HTML)
-                const group = document.createElement('section');
-                const isToday = dateString === localDateString(new Date());
-                group.className = 'schedule-day-group' + (isToday ? ' is-today' : '');
-                const title = document.createElement('h2');
-                title.className = 'schedule-day-title';
-                title.textContent = dayName;
-                const dateLine = document.createElement('span');
-                dateLine.className = 'schedule-day-date';
-                dateLine.textContent = (isToday ? 'today, ' : '') + currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-                title.appendChild(dateLine);
-                group.appendChild(title);
-                const list = document.createElement('ul');
-                list.className = 'schedule-list';
-                group.appendChild(list);
-               
-                // Add each show row
-                daysShows.forEach(show => {
-                    const [sh, sm] = show.Start.split(':').map(Number);
-                    const [eh, em] = show.End.split(':').map(Number);
-                    const startInstant = cphWallToDate(year, monthIndex, dayNum, sh, sm);
-                    // An end of 00:00 means the following midnight, not the same morning
-                    const endInstant = (eh === 0 && em === 0)
-                        ? cphWallToDate(year, monthIndex, dayNum + 1, 0, 0)
-                        : cphWallToDate(year, monthIndex, dayNum, eh, em);
-
-                    const fmt = t => t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
-
-                    // Marker if the show lands on a different calendar day in local time
-                    const cetMidnight = new Date(year, monthIndex, dayNum).getTime();
-                    const localMidnight = new Date(startInstant.getFullYear(), startInstant.getMonth(), startInstant.getDate()).getTime();
-                    const dayDelta = Math.round((localMidnight - cetMidnight) / 86400000);
-                    const marker = dayDelta > 0 ? ` (+${dayDelta})` : dayDelta < 0 ? ` (${dayDelta})` : '';
-
-                    const row = document.createElement('li');
-                    const nowMs = Date.now();
-                    const isLive = startInstant.getTime() <= nowMs && nowMs < endInstant.getTime();
-                    row.className = 'schedule-row' + (isLive ? ' is-live' : '');
-                    const time = document.createElement('div');
-                    time.className = 'schedule-time';
-                    time.textContent = `${fmt(startInstant)} - ${fmt(endInstant)}${marker}`;
-                    const info = document.createElement('div');
-                    info.className = 'schedule-info';
-                    info.textContent = show.Show || show.DJ || '';
-                    if (show.Show && show.DJ) {
-                        const dj = document.createElement('span');
-                        dj.className = 'schedule-dj';
-                        dj.textContent = ` w/ ${show.DJ}`;
-                        info.appendChild(dj);
-                    }
-                    if (isLive) {
-                        const tag = document.createElement('span');
-                        tag.className = 'schedule-live-tag';
-                        tag.textContent = 'on air';
-                        info.appendChild(tag);
-                    }
-                    row.append(time, info);
-                    list.appendChild(row);
-                });
-
-                scheduleContainer.appendChild(group);
-            }
-        }
-        
-        // If the entire week is completely empty
-        if (!scheduleContainer.hasChildNodes()) {
-            const empty = document.createElement('p');
-            empty.className = 'schedule-empty';
-            empty.textContent = scheduleError
-                ? "Couldn't load the schedule. Please try again later."
-                : 'No shows scheduled this week yet. Check back soon, or follow us on Instagram.';
-            scheduleContainer.appendChild(empty);
-        }
+        if (!tzNote) return;
+        const abbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+        tzNote.textContent = `Times are in your timezone (${abbr}).`;
     }
 
     // ==========================================
@@ -493,14 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // "2026-04-06" from a Date's local fields
     function localDateString(d) {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
-    // Find the Monday of whatever Date is passed to it
-    function getMonday(d) {
-        d = new Date(d);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-        return new Date(d.setDate(diff));
     }
 
     // The schedule sheet's Start/End are Europe/Copenhagen wall-clock times. These helpers
