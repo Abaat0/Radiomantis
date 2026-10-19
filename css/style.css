@@ -136,31 +136,6 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 /* Lines a touch stronger so they hold over the colour */
 { --rule: rgba(34, 48, 26, 0.28); }
 
-/* ---------- the little mantis on the footer line ---------- */
-
-.mascot {
-    position: absolute;
-    right: 6%;
-    bottom: 100%;
-    width: 112px;
-    height: auto;
-    margin-bottom: -8px;               /* feet on the footer rule */
-    transform-origin: 55% 95%;
-    transition: transform 0.3s ease;
-    pointer-events: auto;
-    cursor: pointer;
-}
-.site-footer { position: relative; }
-.mascot:hover { transform: rotate(-8deg) scale(1.06); }
-/* While the stream plays, it dances (slowly) */
-html[data-playing] .mascot { animation: mascot-dance 1.9s ease-in-out infinite; }
-@keyframes mascot-dance {
-    0%, 100% { transform: rotate(-4deg) translateY(0); }
-    25% { transform: rotate(3deg) translateY(-3px); }
-    50% { transform: rotate(-2deg) translateY(0); }
-    75% { transform: rotate(5deg) translateY(-4px); }
-}
-
 /* ---------- on-air strip ---------- */
 
 .onair {
@@ -810,12 +785,10 @@ html[data-playing] .mascot { animation: mascot-dance 1.9s ease-in-out infinite; 
     .about { grid-template-columns: 1fr; }
 
     #chat-drawer { border-left: none; }
-    .mascot { width: 84px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    html[data-playing] .mascot,
     html[data-playing] .bokeh span { animation: none; }
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
