@@ -547,10 +547,9 @@ a.resident:hover img { filter: saturate(1.15) contrast(1.05); }
     margin-bottom: var(--s8);
 }
 .resident-photo {
+    /* Shown at its own shape, never cropped */
     width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
-    background: var(--leaf-pale);
+    height: auto;
 }
 .resident-info { margin-top: var(--s5); max-width: 36rem; }
 .resident-info p + p { margin-top: var(--s2); }
@@ -906,7 +905,7 @@ html[data-dock] body { padding-bottom: 124px; }
     .show-title, .resident-name { font-size: 1.0625rem; }
     .show-play::after { width: 38px; height: 38px; left: 8px; bottom: 8px; background-size: 15px auto; }
     .resident-head { grid-template-columns: 1fr; gap: var(--s5); }
-    .resident-photo { max-width: 320px; }
+    .resident-photo { max-width: 360px; }
     .mc-dock-inner { padding-right: calc(var(--gutter) + 40px); }
 
 

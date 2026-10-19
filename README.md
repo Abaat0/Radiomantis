@@ -65,3 +65,9 @@ AzuraCast and terminates TLS). Chat-specific deploy/proxy details are in
 ## License
 
 [GPL-3.0](LICENSE).
+
+### When you change css/style.css or javascript/script.js
+
+Bump the `?v=` number on the `style.css` / `script.js` links in every page
+(index, residents, resident, past-shows, about). Browsers keep their saved copy
+of these files otherwise, and returning visitors would get new pages with old code.
