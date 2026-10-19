@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. CONSTANTS & GLOBAL STATE
     // ==========================================
     // The Google Doc schedule is the single source of truth for show/DJ names.
-    const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
+    // Tabs of the Google Sheet: "Schedule" (the shows) and "Residents". If you rename a tab,
+    // change its name here too.
+    const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Schedule';
 
     const SCHEDULE_MAX_AGE_MS = 10 * 60 * 1000; // re-fetch the sheet at most every 10 minutes
     const PAST_SHOWS_PAGE = 24;                  // how many past shows to show at a time
