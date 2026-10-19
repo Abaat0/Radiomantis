@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //  - on a date in the schedule sheet (from the first show until the last one ends):
     //    "on air", with the show playing now or "next live: <show>, 18:00" between shows.
     //    It never flips to off air in the gaps between back-to-back sets.
-    //  - any other date: just "next live on 25th of October, 2026".
+    //  - any other date: "off air" and "next live on 25th of October, 2026".
     // If a DJ connects to AzuraCast outside the schedule, the bar shows them as on air too.
     let azuracastLive = null;      // { name } while a DJ is connected, else null
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // schedule (so a slow or failed sheet never cuts anyone off).
         if (scheduleFetchedAt) stopLive();
         const text = upcoming.length ? `next live on ${longDate(upcoming[0].start)}` : '';
-        setStripState('offline', '', text);
+        setStripState('offline', 'off air', text);
     }
 
     // Lock-screen / headphone controls info
