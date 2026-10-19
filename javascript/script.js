@@ -232,10 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         syncPlayButton();
 
-        const next = getUpcomingShows(2, 120).find((o) => o.start > new Date());
-        const text = next
-            ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}`
-            : 'off air for now';
+        // Only on a broadcast day does the bar say what's coming up; otherwise just "off air"
+        const next = getUpcomingShows(10, 2).find((o) => o.start > new Date() && isToday(o.start));
+        const text = next ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}` : '';
         setStripState('offline', 'off air', text.toLowerCase());
     }
 
