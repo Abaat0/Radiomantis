@@ -71,6 +71,19 @@ body::before {
 
 body > * { position: relative; z-index: 1; }
 
+/* The red plant, pinned to the bottom-right corner of the screen behind the page,
+   so it stays in the corner while you scroll. Hidden on phones, where it would sit
+   under the text. */
+#plant.corner-plant {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    width: clamp(280px, 34vw, 560px);
+    height: auto;
+    pointer-events: none;
+}
+
 h1, h2, h3, p, ol, ul, figure, blockquote { margin: 0; }
 ol, ul { padding: 0; list-style: none; }
 img { display: block; max-width: 100%; height: auto; }
@@ -672,13 +685,6 @@ html[data-dock] body { padding-bottom: 124px; }
 }
 .about-contact .section-title { font-size: var(--fs-h3); margin-bottom: var(--s3); }
 .about-contact p { color: var(--moss-soft); margin-bottom: var(--s4); }
-.about-plant {
-    width: 100%;
-    max-width: 440px;
-    margin-top: var(--s7);
-    margin-left: auto;
-}
-
 .contact-email {
     font-family: var(--font-display);
     font-weight: 700;
@@ -926,6 +932,7 @@ html[data-dock] body { padding-bottom: 124px; }
     .about { grid-template-columns: 1fr; }
 
     #chat-drawer { border-left: none; }
+    #plant.corner-plant { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
