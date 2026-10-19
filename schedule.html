@@ -1,74 +1,16 @@
 <!DOCTYPE html>
-<html lang="en"> <head>
+<html lang="en">
+<head>
     <meta charset="utf-8">
-    <style>
-        html, body { background-color: #c8e476; }
-    </style>
-    <title>Schedule - Radiomantis</title>
-    <link rel="icon" href="css/pictures/logofinal.avif" type="image/x-icon">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="css/pictures/logov2.webp"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Castoro&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" href="css/pictures/app-icon.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="transparent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Radiomantis</title>
+    <!-- The schedule page was folded into "up next" on the home page.
+         This keeps old links and bookmarks to /schedule working. -->
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://radiomantis.com/">
+    <meta http-equiv="refresh" content="0; url=/">
+    <script>location.replace('/');</script>
 </head>
 <body>
-    <img src="css/pictures/plant-background.webp" id="plant" alt="" aria-hidden="true">
-    <div id="app-frame">
-        <main id="home-view">
-            <section id="info-box" class="past-shows-box">
-                <h2>Schedule</h2>
-
-                <div class="schedule-controls">
-                    <button id="prev-week-btn" class="nav-btn">&larr; Previous</button>
-                    <span id="week-label">Loading...</span>
-                    <button id="next-week-btn" class="nav-btn">Next &rarr;</button>
-                </div>
-                <p id="tz-note" class="schedule-info">all times are in cet!</p>
-
-                <div id="schedule-container"></div>
-               
-            </section>
-        </main>
-
-        <nav id="main-menu">
-            <a href="/" class="nav-link">home</a>
-            <a href="/schedule" class="nav-link">schedule</a>
-            <a href="/residents" class="nav-link wip-link">residents</a>
-            <a href="/past-shows" class="nav-link wip-link">past shows</a>
-            <a href="/about" class="nav-link wip-link">about us</a>
-            <a target="_blank" href="https://buymeacoffee.com/radiomantis" class="nav-link wip-link">donate</a>
-        </nav>
-    </div>
-
-    <!-- Live chat:  -->
-    <button id="chat-toggle" type="button" aria-label="Open chat" aria-expanded="false">chat</button>
-    <aside id="chat-drawer" aria-hidden="true" aria-label="Live chat">
-        <div id="chat-header">
-            <span id="chat-title">chat</span>
-            <button id="chat-close" type="button" aria-label="Close chat">&times;</button>
-        </div>
-        <div id="chat-status">connecting&hellip;</div>
-        <div id="chat-log" role="log" aria-live="polite"></div>
-        <form id="chat-form" autocomplete="off">
-            <input id="chat-input" type="text" maxlength="500" placeholder="say something&hellip;" aria-label="Message">
-        </form>
-        <div id="chat-nick-gate">
-            <form id="chat-nick-form" autocomplete="off">
-                <label for="chat-nick-input">pick a name to chat</label>
-                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name" aria-label="Nickname">
-                <button type="submit">join</button>
-            </form>
-        </div>
-    </aside>
-
-    <audio id="radio-stream" src="https://radiomantis.com/listen/radiomantis/radio.mp3" preload="none"></audio>
-    <script src="javascript/script.js"></script> 
+    <p>The schedule is now on the <a href="/">home page</a>.</p>
 </body>
 </html>

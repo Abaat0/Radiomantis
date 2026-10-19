@@ -1,86 +1,118 @@
 <!DOCTYPE html>
-<html lang="en"> <head>
+<html lang="en" data-page="residents">
+<head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Residents - Radiomantis</title>
+    <meta name="description" content="Radiomantis is an online community radio with live shows from resident DJs and selectors around the world.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Radiomantis">
+    <meta property="og:title" content="Residents - Radiomantis">
+    <meta property="og:description" content="Radiomantis is an online community radio with live shows from resident DJs and selectors around the world.">
+    <meta property="og:url" content="https://radiomantis.com/residents">
+    <meta property="og:image" content="https://radiomantis.com/css/pictures/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <style>
         html, body { background-color: #c8e476; }
     </style>
-    <title>Residents - Radiomantis</title>
-    <link rel="icon" href="css/pictures/logofinal.avif" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="css/pictures/logov2.webp"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Castoro&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="css/pictures/favicon-32.png">
     <link rel="apple-touch-icon" href="css/pictures/app-icon.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="transparent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..900&family=Schibsted+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#db1f26">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-    <img src="css/pictures/plant-background.webp" id="plant" alt="" aria-hidden="true">
-    <div id="app-frame">
-        
-        <main id="home-view">
+    <div class="bokeh" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span><span class="b5"></span><span class="b6"></span><span class="b7"></span></div>
+    <a class="skip-link" href="#app-frame">skip to content</a>
 
-
-            <section id="info-box" class="past-shows-box">
-                <h2>Residents</h2>
-                
-                <div class="shows-grid residents-grid">
-                    <a href="" target="_blank" class="show-item">
-                        <img src="css/pictures/residents/beesuave.avif" alt="Bee Suave">
-                        <p>Bee Suave (IT)</p>
-                    </a>
-                    <a href="" target="_blank" class="show-item">
-                        <img src="css/pictures/residents/biancah.avif" alt="biancah">
-                        <p>biancah (BR)</p>
-                    </a>                    
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/darbydarby.avif" alt="darbydarby">
-                        <p>darbydarby (US)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/fodongophon.avif" alt="Fodongophon">
-                        <p>Fodongophon (DE)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/heatsink.avif" alt="heatsink">
-                        <p>heatsink (US)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/luca.avif" alt="luca">
-                        <p>luca (BR)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/shweiri.avif" alt="shweiri">
-                        <p>shweiri (US)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/sideroom.avif" alt="Sideroom">
-                        <p>Sideroom (IN)</p>
-                    </a>
-                    <a href="" target="" class="show-item">
-                        <img src="css/pictures/residents/splenda.avif" alt="splenda">
-                        <p>splenda (US)</p>
-                    </a>
-                </div>
-            </section>
-        </main>
-
-        <nav id="main-menu">
-            <a href="/" class="nav-link">home</a>
-            <a href="/schedule" class="nav-link wip-link">schedule</a>
-            <a href="/residents" class="nav-link wip-link">residents</a>
-            <a href="/past-shows" class="nav-link">past shows</a>
-            <a href="/about" class="nav-link wip-link">about us</a>
-            <a target="_blank" href="https://buymeacoffee.com/radiomantis" class="nav-link wip-link">donate</a>
-        </nav>
+    <!-- On-air strip: lives outside #app-frame so the player keeps going across pages -->
+    <div class="onair" id="onair" data-state="offline">
+        <div class="onair-inner">
+            <button id="play-pause-btn" class="icon-button" type="button" aria-label="Play" hidden></button>
+            <p class="onair-status"><span class="onair-dot" aria-hidden="true"></span><span id="status-label" aria-live="polite">off air</span></p>
+            <p id="main-player-text" class="onair-show">off air for now</p>
+            <button id="chat-toggle" class="onair-chat" type="button" aria-expanded="false" aria-controls="chat-drawer">chat</button>
+        </div>
     </div>
 
-    <!-- Live chat:  -->
-    <button id="chat-toggle" type="button" aria-label="Open chat" aria-expanded="false">chat</button>
+    <header class="site-header">
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">menu</button>
+        <nav class="site-nav" id="site-nav" aria-label="Main">
+            <ul>
+                <li><a href="/" class="nav-link">home</a></li>
+                <li><a href="/residents" class="nav-link" aria-current="page">residents</a></li>
+                <li><a href="/past-shows" class="nav-link">past shows</a></li>
+                <li><a href="/about" class="nav-link">about us</a></li>
+                <li><a href="https://buymeacoffee.com/radiomantis" class="nav-link nav-link--donate" target="_blank" rel="noopener">donate</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="app-frame" tabindex="-1">
+        <main class="page page-residents" data-page="residents">
+            <header class="page-head">
+                <h1 class="page-title">residents</h1>
+                <p class="page-intro">The selectors behind our regular shows, broadcasting from seven cities on four continents.</p>
+            </header>
+            <div class="residents-grid" id="residents-grid">
+                <a class="resident" href="/resident?r=beesuave">
+                    <img src="css/pictures/residents/beesuave.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">Bee Suave</span><span class="resident-place">Turin</span></span>
+                </a>
+                <a class="resident" href="/resident?r=biancah">
+                    <img src="css/pictures/residents/biancah.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">biancah</span><span class="resident-place">São Paulo</span></span>
+                </a>
+                <a class="resident" href="/resident?r=darbydarby">
+                    <img src="css/pictures/residents/darbydarby.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">darbydarby</span><span class="resident-place">New York</span></span>
+                </a>
+                <a class="resident" href="/resident?r=fodongophon">
+                    <img src="css/pictures/residents/fodongophon.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">Fodongophon</span><span class="resident-place">Hamburg</span></span>
+                </a>
+                <a class="resident" href="/resident?r=heatsink">
+                    <img src="css/pictures/residents/heatsink.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">heatsink</span><span class="resident-place">Los Angeles</span></span>
+                </a>
+                <a class="resident" href="/resident?r=luca">
+                    <img src="css/pictures/residents/luca.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">luca</span><span class="resident-place">São Paulo</span></span>
+                </a>
+                <a class="resident" href="/resident?r=shweiri">
+                    <img src="css/pictures/residents/shweiri.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">shweiri</span><span class="resident-place">Boston</span></span>
+                </a>
+                <a class="resident" href="/resident?r=sideroom">
+                    <img src="css/pictures/residents/sideroom.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">Sideroom</span><span class="resident-place">Bangalore</span></span>
+                </a>
+                <a class="resident" href="/resident?r=splenda">
+                    <img src="css/pictures/residents/splenda.avif" alt="" loading="lazy" width="1000" height="1334">
+                    <span class="resident-caption"><span class="resident-name">splenda</span><span class="resident-place">Los Angeles</span></span>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <p class="footer-about">Radiomantis is an online community radio, founded in Aarhus in 2025 and now based in Turin.</p>
+        <ul class="footer-links">
+            <li><a href="https://www.instagram.com/radiomantis808" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.mixcloud.com/radiomantis/" target="_blank" rel="noopener">Mixcloud</a></li>
+            <li><a href="https://buymeacoffee.com/radiomantis" target="_blank" rel="noopener">Donate</a></li>
+            <li><a href="mailto:play@radiomantis.com">play@radiomantis.com</a></li>
+        </ul>
+    </footer>
+
+    <!-- Live chat -->
     <aside id="chat-drawer" aria-hidden="true" aria-label="Live chat">
         <div id="chat-header">
             <span id="chat-title">chat</span>
@@ -94,13 +126,22 @@
         <div id="chat-nick-gate">
             <form id="chat-nick-form" autocomplete="off">
                 <label for="chat-nick-input">pick a name to chat</label>
-                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name" aria-label="Nickname">
+                <input id="chat-nick-input" type="text" maxlength="24" placeholder="your name">
                 <button type="submit">join</button>
             </form>
         </div>
     </aside>
 
+    <!-- Show player: Mixcloud's classic widget, docked; outside #app-frame so it keeps playing -->
+    <div id="mc-dock" class="mc-dock" hidden>
+        <div class="mc-dock-inner">
+            <iframe id="mc-frame" title="Mixcloud player" src="about:blank" allow="autoplay" loading="lazy"></iframe>
+            <button id="mc-dock-close" class="mc-dock-close" type="button" aria-label="Close player">&times;</button>
+        </div>
+        <span id="mc-dock-label" class="visually-hidden" aria-live="polite"></span>
+    </div>
+
     <audio id="radio-stream" src="https://radiomantis.com/listen/radiomantis/radio.mp3" preload="none"></audio>
-    <script src="javascript/script.js"></script> 
+    <script src="javascript/script.js"></script>
 </body>
 </html>
