@@ -162,31 +162,80 @@ document.addEventListener('DOMContentLoaded', () => {
         playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     }
 
+    // The top bar follows one rule:
+    //  - on a date in the schedule sheet (from the first show until the last one ends):
+    //    "on air", with the show playing now or "next live: <show>, 18:00" between shows.
+    //    It never flips to off air in the gaps between back-to-back sets.
+    //  - any other date: just "next live on 25th of October, 2026".
+    // If a DJ connects to AzuraCast outside the schedule, the bar shows them as on air too.
+    let azuracastLive = null;      // { name } while a DJ is connected, else null
+
     async function updateRadioData() {
         if (!document.getElementById('onair')) return;
         try {
-            const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });            
+            const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });
             const radioData = await response.json();
-
-            // Check if a DJ is actively broadcasting
-            if (radioData.live && radioData.live.is_live) {
-                const streamerAccount = radioData.live.streamer_name || "unknown";
-                setOnlineState(streamerAccount);
-            } else {
-                if (shouldBeWaiting()) {
-                    setStandbyState();
-                } else {
-                    setOfflineState();
-                }
-            }
-
+            azuracastLive = (radioData.live && radioData.live.is_live)
+                ? { name: radioData.live.streamer_name || '' } : null;
         } catch (error) {
-            console.error("Couldn't fetch radio data. Defaulting to offline.", error);
-            setOfflineState(); 
+            console.error("Couldn't fetch radio data.", error);
+            azuracastLive = null;
         }
+        renderStrip();
     }
 
-    // The strip's colour and dot follow the state: live, standby or offline
+    function renderStrip() {
+        const upcoming = getUpcomingShows(10, 120);
+        const current = upcoming.find((o) => o.live);
+        const today = upcoming.filter((o) => o.live || isToday(o.start));
+
+        if (azuracastLive || today.length) {
+            let text;
+            if (current) text = showLabel(current.show);
+            else if (azuracastLive && azuracastLive.name) text = azuracastLive.name;
+            else {
+                const next = today.find((o) => !o.live);
+                text = next ? `next live: ${showLabel(next.show)}, ${timeOf(next.start)}` : '';
+            }
+            setStripState('live', 'on air', text.toLowerCase());
+            setMediaSession(current ? current.show : null, azuracastLive && azuracastLive.name);
+            return;
+        }
+
+        // Not a broadcast date. Only stop a listener's stream once we actually know the
+        // schedule (so a slow or failed sheet never cuts anyone off).
+        if (scheduleFetchedAt) stopLive();
+        const text = upcoming.length ? `next live on ${longDate(upcoming[0].start)}` : '';
+        setStripState('offline', '', text);
+    }
+
+    // Lock-screen / headphone controls info
+    function setMediaSession(show, streamer) {
+        if (!('mediaSession' in navigator)) return;
+        const host = (show && show.DJ) || streamer || 'Radiomantis';
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: (show && (show.Show || show.DJ)) || streamer || 'Radiomantis',
+            artist: show && show.Show ? host : 'Radiomantis',
+            artwork: [{ src: '/css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/png' }],
+        });
+    }
+
+    function stopLive() {
+        const audioStream = document.getElementById('radio-stream');
+        if (audioStream && !audioStream.paused) {
+            audioStream.pause();
+            audioStream.removeAttribute('src');
+            audioStream.load();
+        }
+        syncPlayButton();
+    }
+
+    // "18:00" in the listener's timezone
+    function timeOf(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
+    }
+
+    // The strip's colour and dot follow the state: live or offline
     function setStripState(state, label, text) {
         const strip = document.getElementById('onair');
         const playButton = document.getElementById('play-pause-btn');
@@ -195,51 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!strip || !playButton || !statusLabel || !mainText) return;
         strip.dataset.state = state;
         playButton.hidden = state === 'offline';
+        const pill = statusLabel.closest('.onair-status');
+        if (pill) pill.hidden = !label;
         if (statusLabel.textContent !== label) statusLabel.textContent = label;
         mainText.textContent = text;
         mainText.title = text;
-    }
-
-    function setOnlineState(streamerAccount) {
-        // Look up whatever show is scheduled for right now in the Google Doc.
-        // Fall back to the raw AzuraCast streamer handle if nothing matches.
-        const activeShow = getCurrentShow();
-        const host = (activeShow && activeShow.DJ) ? activeShow.DJ : streamerAccount;
-        const title = (activeShow && activeShow.Show) ? activeShow.Show : host;
-
-        const text = (activeShow && activeShow.Show) ? `${activeShow.Show} w/ ${host}` : `${host}`;
-        setStripState('live', 'live', text.toLowerCase());
-
-        // add the player info to lock screen
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: title,
-                artist: activeShow ? host : "Radiomantis",
-                artwork: [
-                    { src: '/css/pictures/maskable-icon.png', sizes: '512x512', type: 'image/png' }
-                ]
-            });
-        }
-    }
-
-    function setOfflineState() {
-        const audioStream = document.getElementById('radio-stream');
-        // Force pause the audio if they were listening when the DJ logged off
-        if (audioStream && !audioStream.paused) {
-            audioStream.pause();
-            audioStream.removeAttribute('src');
-            audioStream.load();
-        }
-        syncPlayButton();
-
-        // Only on a broadcast day does the bar say what's coming up; otherwise just "off air"
-        const next = getUpcomingShows(10, 2).find((o) => o.start > new Date() && isToday(o.start));
-        const text = next ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}` : '';
-        setStripState('offline', 'off air', text.toLowerCase());
-    }
-
-    function setStandbyState() {
-        setStripState('standby', 'standby', 'new set starting soon…');
     }
 
     // "sangwich show w/ splenda", or just the DJ when there's no show name
@@ -279,8 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     masterScheduleData = Array.isArray(rows) ? rows : [];
                     scheduleFetchedAt = Date.now();
                     scheduleError = false;
-                    // The player may have checked before the sheet arrived; name the show now
-                    updateRadioData();
+                    // The bar may have been drawn before the sheet arrived; redraw it now
+                    renderStrip();
                 })
                 .catch((error) => {
                     scheduleError = true;
@@ -438,84 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
     }
 
-    // Resolves a schedule row into concrete { startTime, endTime } Date objects for
-    // the occurrence relevant to `now` — today, or yesterday for overnight shows that
-    // run past midnight. Returns null if the row isn't airing on either of those days.
-    function getShowWindow(show, now) {
-        if (!show.Start || !show.End) return null;
 
-        const currentDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
-
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        const yesterdayName = yesterday.toLocaleDateString('en-US', { weekday: 'long' });
-
-        // `now` holds Copenhagen wall-clock time in local fields, so format those fields
-        // directly; toISOString() would convert to UTC and give the wrong day near midnight.
-        const dateStringToday = localDateString(now);
-        const dateStringYesterday = localDateString(yesterday);
-
-        let showDateObj = null;
-        if ((show.Date && show.Date === dateStringToday) ||
-            ((!show.Date || show.Date.trim() === "") && show.Day === currentDayName)) {
-            showDateObj = new Date(now); // Base it on today
-        } else if ((show.Date && show.Date === dateStringYesterday) ||
-                   ((!show.Date || show.Date.trim() === "") && show.Day === yesterdayName)) {
-            showDateObj = new Date(yesterday); // Base it on yesterday (overnight show)
-        }
-
-        if (!showDateObj) return null;
-
-        const [startH, startM] = show.Start.split(':').map(Number);
-        const [endH, endM] = show.End.split(':').map(Number);
-
-        const startTime = new Date(showDateObj);
-        startTime.setHours(startH, startM, 0, 0);
-
-        const endTime = new Date(showDateObj);
-        endTime.setHours(endH, endM, 0, 0);
-        // An end at or before the start (23:00–01:00, 22:00–00:00) is the next morning
-        if (endTime <= startTime) endTime.setDate(endTime.getDate() + 1);
-
-        return { startTime, endTime };
-    }
-
-    // Returns the schedule row currently on air, or null. Used to name the live show.
-    function getCurrentShow() {
-        if (!masterScheduleData || masterScheduleData.length === 0) return null;
-
-        const now = getNowInCopenhagen();
-        for (const show of masterScheduleData) {
-            const window = getShowWindow(show, now);
-            if (window && now >= window.startTime && now <= window.endTime) {
-                return show;
-            }
-        }
-        return null;
-    }
-
-    // True if a show is on air, or is within 15 minutes of starting or having ended.
-    function shouldBeWaiting() {
-        if (!masterScheduleData || masterScheduleData.length === 0) return false;
-
-        const now = getNowInCopenhagen();
-        for (const show of masterScheduleData) {
-            const window = getShowWindow(show, now);
-            if (!window) continue;
-
-            const minsUntilStart = (window.startTime - now) / (1000 * 60);
-            const minsSinceEnd = (now - window.endTime) / (1000 * 60);
-
-            const isDuringShow = now >= window.startTime && now <= window.endTime;
-            const isStartingSoon = minsUntilStart <= 15 && minsUntilStart > 0;
-            const justEnded = minsSinceEnd <= 15 && minsSinceEnd >= 0;
-
-            if (isDuringShow || isStartingSoon || justEnded) {
-                return true;
-            }
-        }
-        return false;
-    }
  
     // ==========================================
     // 6. NAVIGATION

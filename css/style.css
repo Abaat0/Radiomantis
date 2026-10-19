@@ -170,6 +170,7 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 .icon-button:active { transform: scale(0.92); }
 .icon-button.is-playing { background-image: url('pictures/pause-light.png'); }
 .icon-button[hidden] { display: none; }
+.onair-status[hidden] { display: none; }
 .onair .icon-button:focus-visible { outline-color: var(--leaf-pale); }
 
 .onair-status {
