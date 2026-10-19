@@ -399,7 +399,7 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     color: var(--moss-soft);
 }
 
-/* ---------- show cards (home + past shows) ---------- */
+/* ---------- show cards (home, past shows, resident pages) ---------- */
 
 .shows-grid {
     display: grid;
@@ -411,10 +411,35 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 .show-item {
     display: flex;
     flex-direction: column;
-    gap: var(--s3);
-    text-decoration: none;
+    gap: var(--s2);
     color: var(--moss);
 }
+/* The artwork is the play button */
+.show-play {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin-bottom: var(--s2);
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.show-play::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--mantis) url('pictures/play-light.png') 58% 50% / 18px auto no-repeat;
+    box-shadow: 0 2px 8px rgba(34, 48, 26, 0.25);
+    transform: scale(0.9);
+    transition: transform 0.15s ease;
+}
+.show-play:hover::after,
+.show-play:focus-visible::after { transform: scale(1); }
 .show-item img {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -422,18 +447,23 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     background: var(--leaf-pale);
     transition: filter 0.2s ease;
 }
-.show-item p {
+.show-title {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: var(--fs-h3);
     line-height: 1.15;
     letter-spacing: -0.005em;
 }
-.show-item:hover { color: var(--mantis-deep); }
-.show-item:hover img { filter: saturate(1.15) contrast(1.05); }
+.show-play:hover img { filter: saturate(1.15) contrast(1.05); }
+
+.show-hosts {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--moss-soft);
+}
+.show-hosts a { color: var(--mantis-deep); }
 
 .show-date {
-    margin-top: calc(var(--s2) * -1);
     font-size: var(--fs-small);
     color: var(--moss-soft);
     font-variant-numeric: tabular-nums;
@@ -474,13 +504,21 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: var(--s7) var(--s5);
 }
+a.resident {
+    display: block;
+    color: var(--moss);
+    text-decoration: none;
+}
+a.resident:hover .resident-name { color: var(--mantis-deep); }
+a.resident:hover img { filter: saturate(1.15) contrast(1.05); }
 .resident img {
     width: 100%;
     aspect-ratio: 3 / 4;
     object-fit: cover;
     background: var(--leaf-pale);
+    transition: filter 0.2s ease;
 }
-.resident figcaption {
+.resident-caption {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -496,6 +534,93 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 .resident-place {
     font-size: var(--fs-small);
     color: var(--moss-soft);
+    white-space: nowrap;
+}
+
+/* ---------- one resident ---------- */
+
+.resident-head {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--s7);
+    align-items: end;
+    margin-bottom: var(--s8);
+}
+.resident-photo {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    background: var(--leaf-pale);
+}
+.resident-info { margin-top: var(--s5); max-width: 36rem; }
+.resident-info p + p { margin-top: var(--s2); }
+.resident-city { font-size: var(--fs-lead); color: var(--moss-soft); }
+.resident-genres { font-weight: 600; }
+.resident-next { font-weight: 700; color: var(--mantis-deep); }
+.resident-bio { margin-top: var(--s4) !important; font-size: var(--fs-lead); line-height: 1.5; }
+.resident-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s5);
+    margin-top: var(--s5);
+}
+.resident-links a { font-weight: 600; }
+.section-count {
+    font-family: var(--font-text);
+    font-size: var(--fs-body);
+    font-weight: 600;
+    color: var(--moss-soft);
+    vertical-align: 0.3em;
+}
+
+/* ---------- show player dock (Mixcloud classic widget) ---------- */
+
+.mc-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+    background: var(--leaf-pale);
+    border-top: 1.5px solid var(--moss);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.mc-dock[hidden] { display: none; }
+.mc-dock-inner {
+    position: relative;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 calc(var(--gutter) + 44px) 0 var(--gutter);
+}
+.mc-dock iframe {
+    display: block;
+    width: 100%;
+    height: 120px;
+    border: 0;
+}
+.mc-dock-close {
+    position: absolute;
+    top: 8px;
+    right: var(--gutter);
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--moss);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--moss);
+    font-size: 1.375rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.mc-dock-close:hover { background: var(--moss); color: var(--leaf-pale); }
+/* keep the footer clear of the dock */
+html[data-dock] body { padding-bottom: 124px; }
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
     white-space: nowrap;
 }
 
@@ -777,8 +902,12 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     .shows-grid,
     .shows-grid--latest { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6) var(--s4); }
     .residents-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6) var(--s4); }
-    .resident figcaption { flex-direction: column; gap: 2px; }
-    .show-item p, .resident-name { font-size: 1.0625rem; }
+    .resident-caption { flex-direction: column; gap: 2px; }
+    .show-title, .resident-name { font-size: 1.0625rem; }
+    .show-play::after { width: 38px; height: 38px; left: 8px; bottom: 8px; background-size: 15px auto; }
+    .resident-head { grid-template-columns: 1fr; gap: var(--s5); }
+    .resident-photo { max-width: 320px; }
+    .mc-dock-inner { padding-right: calc(var(--gutter) + 40px); }
 
 
 

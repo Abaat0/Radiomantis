@@ -97,6 +97,15 @@
         </div>
     </aside>
 
+    <!-- Show player: Mixcloud's classic widget, docked; outside #app-frame so it keeps playing -->
+    <div id="mc-dock" class="mc-dock" hidden>
+        <div class="mc-dock-inner">
+            <iframe id="mc-frame" title="Mixcloud player" src="about:blank" allow="autoplay" loading="lazy"></iframe>
+            <button id="mc-dock-close" class="mc-dock-close" type="button" aria-label="Close player">&times;</button>
+        </div>
+        <span id="mc-dock-label" class="visually-hidden" aria-live="polite"></span>
+    </div>
+
     <audio id="radio-stream" src="https://radiomantis.com/listen/radiomantis/radio.mp3" preload="none"></audio>
     <script src="javascript/script.js"></script>
 </body>
