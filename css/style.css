@@ -244,7 +244,7 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     padding: var(--s5) var(--gutter);
     display: flex;
     align-items: center;
-    justify-content: flex-start;   /* menu sits on the left, no logo in the bar */
+    justify-content: flex-end;     /* menu sits on the right, no logo in the bar */
     gap: var(--s5);
 }
 
@@ -756,7 +756,7 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
     }
     .site-nav.is-open { display: block; }
     .site-header { position: relative; }
-    .site-nav ul { flex-direction: column; gap: 0; }
+    .site-nav ul { flex-direction: column; align-items: flex-end; gap: 0; }   /* links right, under the menu button */
     .nav-link {
         display: block;
         font-size: 2rem;
