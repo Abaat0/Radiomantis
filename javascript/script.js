@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!toggle || !nav) return;
         nav.classList.toggle('is-open', open);
         toggle.setAttribute('aria-expanded', String(open));
-        toggle.textContent = open ? 'close' : 'menu';
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     }
 
     // ==========================================

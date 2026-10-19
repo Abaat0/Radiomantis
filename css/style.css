@@ -890,18 +890,41 @@ html[data-dock] body { padding-bottom: 124px; }
 
     .site-header { padding-top: var(--s4); padding-bottom: var(--s4); }
 
+    /* Three-line menu button; the lines turn into an X while the menu is open */
     .menu-toggle {
-        display: inline-block;
-        border: 1.5px solid var(--moss);
-        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        margin-right: -10px;         /* lines line up with the page edge */
+        border: 0;
         background: transparent;
-        padding: 6px 18px;
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 1.0625rem;
         cursor: pointer;
     }
-    .menu-toggle[aria-expanded="true"] { background: var(--moss); color: var(--leaf-pale); }
+    .menu-lines,
+    .menu-lines::before,
+    .menu-lines::after {
+        display: block;
+        width: 26px;
+        height: 2.5px;
+        border-radius: 2px;
+        background: var(--moss);
+        transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+    }
+    .menu-lines { position: relative; }
+    .menu-lines::before,
+    .menu-lines::after {
+        content: "";
+        position: absolute;
+        left: 0;
+    }
+    .menu-lines::before { top: -8px; }
+    .menu-lines::after  { top: 8px; }
+    .menu-toggle[aria-expanded="true"] .menu-lines { background: transparent; }
+    .menu-toggle[aria-expanded="true"] .menu-lines::before { transform: translateY(8px) rotate(45deg); }
+    .menu-toggle[aria-expanded="true"] .menu-lines::after  { transform: translateY(-8px) rotate(-45deg); }
 
     .site-nav {
         display: none;
