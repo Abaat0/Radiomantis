@@ -498,7 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = window.location.href;
         let newDocument;
         try {
-            const response = await fetch(url);
+            // Always check with the server: a browser's saved copy of a page can be
+            // from an older version of the site and would mix old content into the new layout
+            const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const html = await response.text();
             newDocument = new DOMParser().parseFromString(html, 'text/html');
