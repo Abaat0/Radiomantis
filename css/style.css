@@ -926,18 +926,29 @@ html[data-dock] body { padding-bottom: 124px; }
     .menu-toggle[aria-expanded="true"] .menu-lines::before { transform: translateY(8px) rotate(45deg); }
     .menu-toggle[aria-expanded="true"] .menu-lines::after  { transform: translateY(-8px) rotate(-45deg); }
 
+    /* Open menu: frosted glass over the page, from under the red bar to the bottom
+       of the screen. The blurred background shows through; the page behind is
+       blurred so the links stay readable. */
     .site-nav {
         display: none;
-        position: absolute;
+        position: fixed;
         left: 0;
         right: 0;
-        top: 100%;
+        top: calc(var(--onair-h) + env(safe-area-inset-top));
+        bottom: 0;
         z-index: 15;
-        padding: var(--s3) var(--gutter) var(--s6);
-        background: var(--leaf);
-        border-bottom: 1.5px solid var(--moss);
+        overflow-y: auto;
+        padding: 76px var(--gutter) calc(var(--s6) + env(safe-area-inset-bottom));
+        background: rgba(232, 244, 206, 0.42);
+        -webkit-backdrop-filter: blur(22px) saturate(1.2);
+                backdrop-filter: blur(22px) saturate(1.2);
     }
     .site-nav.is-open { display: block; }
+    /* Without blur support (older browsers), use a more solid wash instead */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .site-nav { background: rgba(232, 244, 206, 0.94); }
+    }
+    .menu-toggle { position: relative; z-index: 16; }   /* the X stays above the glass */
     .site-header { position: relative; }
     .site-nav ul { flex-direction: column; align-items: flex-end; gap: 0; }   /* links right, under the menu button */
     .nav-link {
