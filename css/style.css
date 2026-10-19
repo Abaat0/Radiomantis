@@ -151,21 +151,40 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 
 /* ---------- background: notebook paper ----------
    Millimetre graph paper, like a naturalist's field notebook: a fine 10px grid
-   with a stronger line every 50px, on pale leaf-green paper. Replaces the
+   with a stronger line every 50px, on pale leaf-green paper, with small pen
+   sketches of insects down the left and right margins
+   (pictures/margin-insects-left.svg / -right.svg). The margins are only wide
+   enough for them on large screens, so they're hidden below 1340px. Replaces the
    blurred mantis-eye view (the .bokeh layer is hidden). */
 
 :root { --leaf: #eef4d0; }            /* paper colour; also the mobile menu panel */
 html, body { background-color: #eef4d0 !important; }
 body {
     background-image:
+        url('pictures/margin-insects-left.svg'),
+        url('pictures/margin-insects-right.svg'),
         linear-gradient(rgba(77, 92, 53, 0.13) 1px, transparent 1px),
         linear-gradient(90deg, rgba(77, 92, 53, 0.13) 1px, transparent 1px),
         linear-gradient(rgba(77, 92, 53, 0.055) 1px, transparent 1px),
         linear-gradient(90deg, rgba(77, 92, 53, 0.055) 1px, transparent 1px);
-    background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+    background-size: 130px auto, 130px auto, 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+    background-repeat: repeat-y, repeat-y, repeat, repeat, repeat, repeat;
+    background-position: left 4px top 140px, right 4px top 40px, 0 0, 0 0, 0 0, 0 0;
     background-attachment: scroll;
 }
 body::before { opacity: 0.18; }       /* lighter grain on paper */
+@media (max-width: 1340px) {
+    body {
+        background-image:
+            linear-gradient(rgba(77, 92, 53, 0.13) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(77, 92, 53, 0.13) 1px, transparent 1px),
+            linear-gradient(rgba(77, 92, 53, 0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(77, 92, 53, 0.055) 1px, transparent 1px);
+        background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+        background-repeat: repeat;
+        background-position: 0 0;
+    }
+}
 .bokeh { display: none; }
 
 /* ---------- on-air strip ---------- */
