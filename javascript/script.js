@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         syncPlayButton();
 
-        const next = getUpcomingShows(1).find((o) => o.start > new Date());
+        const next = getUpcomingShows(2, 120).find((o) => o.start > new Date());
         const text = next
             ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}`
             : 'off air for now';
@@ -302,11 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Every scheduled slot from yesterday to a week ahead, as real moments in time,
     // sorted. Sheet times are Copenhagen wall-clock (see cphWallToDate).
-    function getUpcomingShows(limit = 3) {
+    // `days`: how far ahead to look (dated rows can be weeks away)
+    function getUpcomingShows(limit = 3, days = 7) {
         const now = new Date();
         const cph = getNowInCopenhagen();
         const occurrences = [];
-        for (let offset = -1; offset <= 7; offset++) {
+        for (let offset = -1; offset <= days; offset++) {
             const day = new Date(cph.getFullYear(), cph.getMonth(), cph.getDate() + offset);
             const y = day.getFullYear(), m = day.getMonth(), d = day.getDate();
             const dayName = day.toLocaleDateString('en-US', { weekday: 'long' });
@@ -318,7 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const [sh, sm] = show.Start.split(':').map(Number);
                 const [eh, em] = show.End.split(':').map(Number);
                 const start = cphWallToDate(y, m, d, sh, sm);
-                const end = (eh === 0 && em === 0) ? cphWallToDate(y, m, d + 1, 0, 0) : cphWallToDate(y, m, d, eh, em);
+                // An end at or before the start (23:00–01:00, 22:00–00:00) is the next morning
+                const endsNextDay = eh * 60 + em <= sh * 60 + sm;
+                const end = cphWallToDate(y, m, d + (endsNextDay ? 1 : 0), eh, em);
                 if (end > now) occurrences.push({ show, start, end, live: start <= now });
             });
         }
@@ -331,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('up-next-list');
         if (!list) return;
         list.textContent = '';
-        const upcoming = getUpcomingShows(5);
+        const upcoming = getUpcomingShows(5, 120);   // look up to four months ahead
         if (!upcoming.length) {
             const li = document.createElement('li');
             li.className = 'up-next-empty';
@@ -341,6 +344,20 @@ document.addEventListener('DOMContentLoaded', () => {
             list.appendChild(li);
             return;
         }
+        // Not a broadcast day: just say when the next one is
+        const title = document.getElementById('up-next-title');
+        const tzNote = document.getElementById('tz-note');
+        const liveDay = upcoming.some(({ start, live }) => live || isToday(start));
+        if (title) title.hidden = !liveDay;   // the sentence below says it all
+        if (tzNote) tzNote.hidden = !liveDay;
+        if (!liveDay) {
+            const li = document.createElement('li');
+            li.className = 'up-next-date';
+            li.textContent = `next live on ${longDate(upcoming[0].start)}`;
+            list.appendChild(li);
+            return;
+        }
+
         upcoming.forEach(({ show, start, live }) => {
             const li = document.createElement('li');
             li.className = 'up-next-item' + (live ? ' is-live' : '');
@@ -359,6 +376,22 @@ document.addEventListener('DOMContentLoaded', () => {
             li.append(when, what);
             list.appendChild(li);
         });
+    }
+
+    // Is this moment on today's date, in the listener's timezone?
+    function isToday(date) {
+        const now = new Date();
+        return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+            && date.getDate() === now.getDate();
+    }
+
+    // "25th of October, 2026" in the listener's timezone
+    function longDate(date) {
+        const d = date.getDate();
+        const suffix = (d % 100 >= 11 && d % 100 <= 13) ? 'th'
+            : ({ 1: 'st', 2: 'nd', 3: 'rd' }[d % 10] || 'th');
+        const month = date.toLocaleDateString('en-US', { month: 'long' });
+        return `${d}${suffix} of ${month}, ${date.getFullYear()}`;
     }
 
     // Under "up next": say which timezone the times are in
@@ -441,11 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
         startTime.setHours(startH, startM, 0, 0);
 
         const endTime = new Date(showDateObj);
-        if (endH === 0 && endM === 0) {
-            endTime.setDate(endTime.getDate() + 1); // Midnight end = next day
-        } else {
-            endTime.setHours(endH, endM, 0, 0);
-        }
+        endTime.setHours(endH, endM, 0, 0);
+        // An end at or before the start (23:00–01:00, 22:00–00:00) is the next morning
+        if (endTime <= startTime) endTime.setDate(endTime.getDate() + 1);
 
         return { startTime, endTime };
     }
@@ -822,7 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Next time on air, from the schedule sheet
         loadGlobalSchedule().then(() => {
             if (!nextEl.isConnected) return;
-            const next = getUpcomingShows(200).find((o) => hostsOf(`${o.show.DJ || ''} ${o.show.Show || ''}`).includes(r));
+            const next = getUpcomingShows(200, 120).find((o) => hostsOf(`${o.show.DJ || ''} ${o.show.Show || ''}`).includes(r));
             nextEl.textContent = next ? (next.live ? 'on air now' : `next on air: ${formatWhen(next.start)}`) : '';
             nextEl.hidden = !next;
         });

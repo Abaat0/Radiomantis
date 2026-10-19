@@ -386,6 +386,18 @@ html[data-playing] .bokeh .b5 { animation-duration: 23s; animation-direction: al
 .up-next-dj { color: var(--moss-soft); font-weight: 400; }
 .up-next-item.is-live .up-next-when { color: var(--mantis-deep); }
 
+.up-next-date {
+    padding: var(--s3) 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    line-height: 1.25;
+}
+.up-next-note[hidden],
+.up-next .section-title[hidden] { display: none; }
+
 .up-next-note {
     margin-top: var(--s3);
     font-size: var(--fs-small);
