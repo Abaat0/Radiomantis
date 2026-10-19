@@ -7,24 +7,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const SHEET_URL = 'https://opensheet.elk.sh/1OhiyukdiE9ZdmLHTI0nnnKosPXwnOXUJ4t5uh5c4HYE/Sheet1';
 
     const SCHEDULE_MAX_AGE_MS = 10 * 60 * 1000; // re-fetch the sheet at most every 10 minutes
-    const PAST_SHOWS_PAGE = 24;                  // how many Mixcloud shows to load at a time
+    const PAST_SHOWS_PAGE = 24;                  // how many past shows to show at a time
 
     let masterScheduleData = [];
     let scheduleFetchedAt = 0;
     let schedulePromise = null;
     let scheduleError = false;
-    let currentMonday;
     let chatInitialized = false;
+
+    // Past shows (Mixcloud) and residents (the sheet's Residents tab), see section 7
+    const MIXCLOUD_URL = 'https://api.mixcloud.com/radiomantis/cloudcasts/?limit=100';
+    const RESIDENTS_URL = SHEET_URL.replace(/\/[^/]+$/, '/Residents');
+
+    // Used until the Residents tab exists in the sheet. Same columns as the tab.
+    const RESIDENTS_FALLBACK = [
+        { Name: 'Bee Suave',   Slug: 'beesuave',    City: 'Turin',       Aliases: 'bee suave, beesuave, sangwich' },
+        { Name: 'biancah',     Slug: 'biancah',     City: 'São Paulo',   Aliases: 'biancah, bianca abad' },
+        { Name: 'darbydarby',  Slug: 'darbydarby',  City: 'New York',    Aliases: 'darbydarby, critical conditioner' },
+        { Name: 'Fodongophon', Slug: 'fodongophon', City: 'Hamburg',     Aliases: 'fodongophon, trip recovery service, sunday service, kraüt & ruben, kraut ruben, krautruben' },
+        { Name: 'heatsink',    Slug: 'heatsink',    City: 'Los Angeles', Aliases: 'heatsink, rhythmism' },
+        { Name: 'luca',        Slug: 'luca',        City: 'São Paulo',   Aliases: 'luca' },
+        { Name: 'shweiri',     Slug: 'shweiri',     City: 'Boston',      Aliases: 'shweiri, dj shweiri, watercast' },
+        { Name: 'Sideroom',    Slug: 'sideroom',    City: 'Bangalore',   Aliases: 'sideroom, side room, in too deep' },
+        { Name: 'splenda',     Slug: 'splenda',     City: 'Los Angeles', Aliases: 'splenda, wyd' },
+    ];
+
+    let archive = [];              // every Mixcloud upload, newest first
+    let archivePromise = null;
+    let residents = null;          // normalised resident records
+    let residentsPromise = null;
+    let pastShowsShown = 0;        // how many cards the past-shows page is showing
+
+    let widget = null;            // Mixcloud widget API object, when available
+    let widgetApiPromise = null;
     // Past shows are cached for the whole visit, so going back to the page doesn't refetch.
-    let pastShows = [];
-    let pastShowsNext = 'https://api.mixcloud.com/radiomantis/cloudcasts/?limit=' + PAST_SHOWS_PAGE;
-    let pastShowsLoading = false;
 
 
     // ==========================================
     // 2. INITIALIZATION
     // ==========================================
 
+    initOnce();
     init();
 
     // Poll now-playing every 15s, but not while the tab is in the background.
@@ -35,14 +58,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.visibilityState === 'visible') updateRadioData();
     });
 
-    function init() {
-        initLinks();
+    // Things outside #app-frame (strip, header, footer, chat): set up once per visit
+    function initOnce() {
+        initLinks(document.querySelector('.site-header'));
+        initLinks(document.querySelector('.site-footer'));
+        initMenu();
         initAudioPlayer();
-        initSchedule(); // sets up the week before loadGlobalSchedule() may draw it
+        initDock();
+        initChat();
         updateRadioData();
+    }
+
+    // Things inside #app-frame: set up again after every page change
+    function init() {
+        initLinks(document.getElementById('app-frame'));
+        setCurrentNav();
+        setTimezoneNote();
         loadGlobalSchedule();
         loadPastShows();
-        initChat();
+        loadLatestShows();
+        loadResidentsGrid();
+        loadResidentPage();
+    }
+
+    // Underline the menu link for the page we're on
+    function setCurrentNav() {
+        const here = normalizePath(window.location.pathname);
+        document.querySelectorAll('.site-nav a.nav-link[href^="/"]').forEach((link) => {
+            if (normalizePath(new URL(link.href).pathname) === here) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+    function normalizePath(path) {
+        if (/^\/resident(\.html)?$/.test(path)) return '/residents';
+        return path.replace(/\/index\.html$/, '/').replace(/\.html$/, '').replace(/(.)\/$/, '$1') || '/';
+    }
+
+    // Mobile menu
+    function initMenu() {
+        const toggle = document.getElementById('menu-toggle');
+        const nav = document.getElementById('site-nav');
+        if (!toggle || !nav) return;
+        toggle.addEventListener('click', () => setMenuOpen(!nav.classList.contains('is-open')));
+        nav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenuOpen(false); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && nav.classList.contains('is-open')) { setMenuOpen(false); toggle.focus(); }
+        });
+    }
+    function setMenuOpen(open) {
+        const toggle = document.getElementById('menu-toggle');
+        const nav = document.getElementById('site-nav');
+        if (!toggle || !nav) return;
+        nav.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.textContent = open ? 'close' : 'menu';
     }
 
     // ==========================================
@@ -62,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         playButton.addEventListener('click', () => {
             if (audioStream.paused) {
+                pauseArchived(); // one thing at a time
                 // 1. Re-attach the stream URL right BEFORE playing to guarantee the live edge
                 audioStream.src = streamUrl;
                 audioStream.load(); 
@@ -87,11 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!playButton || !audioStream) return;
         const playing = !audioStream.paused;
         playButton.classList.toggle('is-playing', playing);
+        // Lets the page react while the stream plays (the background colours drift)
+        document.documentElement.toggleAttribute('data-playing', playing);
         playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     }
 
     async function updateRadioData() {
-        if (!document.getElementById('play-pause-btn')) return;
+        if (!document.getElementById('onair')) return;
         try {
             const response = await fetch('https://radiomantis.com/api/nowplaying/2', { cache: 'no-store' });            
             const radioData = await response.json();
@@ -114,26 +186,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function setOnlineState(streamerAccount) {
+    // The strip's colour and dot follow the state: live, standby or offline
+    function setStripState(state, label, text) {
+        const strip = document.getElementById('onair');
         const playButton = document.getElementById('play-pause-btn');
         const statusLabel = document.getElementById('status-label');
         const mainText = document.getElementById('main-player-text');
-        if (!playButton || !statusLabel || !mainText) return;
+        if (!strip || !playButton || !statusLabel || !mainText) return;
+        strip.dataset.state = state;
+        playButton.hidden = state === 'offline';
+        if (statusLabel.textContent !== label) statusLabel.textContent = label;
+        mainText.textContent = text;
+        mainText.title = text;
+    }
 
-        playButton.style.visibility = 'visible';
-        statusLabel.textContent = "now playing";
-
+    function setOnlineState(streamerAccount) {
         // Look up whatever show is scheduled for right now in the Google Doc.
         // Fall back to the raw AzuraCast streamer handle if nothing matches.
         const activeShow = getCurrentShow();
         const host = (activeShow && activeShow.DJ) ? activeShow.DJ : streamerAccount;
         const title = (activeShow && activeShow.Show) ? activeShow.Show : host;
 
-        if (activeShow && activeShow.Show) {
-            mainText.textContent = `${activeShow.Show} w/ ${host}`.toLowerCase();
-        } else {
-            mainText.textContent = `${host}`.toLowerCase();
-        }
+        const text = (activeShow && activeShow.Show) ? `${activeShow.Show} w/ ${host}` : `${host}`;
+        setStripState('live', 'live', text.toLowerCase());
+
         // add the player info to lock screen
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -147,36 +223,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setOfflineState() {
-        const playButton = document.getElementById('play-pause-btn');
         const audioStream = document.getElementById('radio-stream');
-        const statusLabel = document.getElementById('status-label');
-        const mainText = document.getElementById('main-player-text');
-        if (!playButton || !audioStream || !statusLabel || !mainText) return;
-
-        playButton.style.visibility = 'hidden';
-        
         // Force pause the audio if they were listening when the DJ logged off
-        if (!audioStream.paused) {
+        if (audioStream && !audioStream.paused) {
             audioStream.pause();
             audioStream.removeAttribute('src');
             audioStream.load();
         }
         syncPlayButton();
-        
-        statusLabel.textContent = "offline";
-        mainText.textContent = "check the schedule for upcoming shows";
+
+        const next = getUpcomingShows(1).find((o) => o.start > new Date());
+        const text = next
+            ? `next: ${showLabel(next.show)}, ${formatWhen(next.start)}`
+            : 'off air for now';
+        setStripState('offline', 'off air', text.toLowerCase());
     }
 
     function setStandbyState() {
-        const playButton = document.getElementById('play-pause-btn');
-        const statusLabel = document.getElementById('status-label');
-        const mainText = document.getElementById('main-player-text');
-        if (!playButton || !statusLabel || !mainText) return;
+        setStripState('standby', 'standby', 'new set starting soon…');
+    }
 
-        playButton.style.visibility = 'visible'; 
-        
-        statusLabel.textContent = "standby";
-        mainText.textContent = "new set starting soon...";
+    // "sangwich show w/ splenda", or just the DJ when there's no show name
+    function showLabel(show) {
+        return show.Show ? `${show.Show} w/ ${show.DJ || ''}`.trim() : (show.DJ || '');
+    }
+
+    // "today 18:00", "tomorrow 21:00", "friday 20:00" in the listener's timezone
+    function formatWhen(date) {
+        const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const that = new Date(date); that.setHours(0, 0, 0, 0);
+        const days = Math.round((that - today) / 86400000);
+        if (days === 0) return `today ${time}`;
+        if (days === 1) return `tomorrow ${time}`;
+        return `${date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()} ${time}`;
     }
 
     // ==========================================
@@ -187,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadGlobalSchedule() {
         const fresh = scheduleFetchedAt && (Date.now() - scheduleFetchedAt < SCHEDULE_MAX_AGE_MS);
         if (fresh) {
-            if (document.getElementById('schedule-container')) renderWeek();
+            renderScheduleViews();
             return Promise.resolve(masterScheduleData);
         }
         if (!schedulePromise) {
@@ -210,138 +290,83 @@ document.addEventListener('DOMContentLoaded', () => {
                 .finally(() => { schedulePromise = null; });
         }
         return schedulePromise.then(() => {
-            // If they happen to be on the schedule page, draw it now that we have data
-            if (document.getElementById('schedule-container')) renderWeek();
+            // Draw whatever schedule views this page has, now that we have data
+            renderScheduleViews();
             return masterScheduleData;
         });
     }
 
-    function initSchedule() {
-        if (!document.getElementById('schedule-container')) return;
-
-        // Reflect that times are shown in the users local zone, not CET
-        const tzNote = document.getElementById('tz-note');
-        if (tzNote) {
-            const abbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
-            tzNote.textContent = `all times are ${abbr} (+1 means next day)`;
-        }
-
-        currentMonday = getMonday(new Date());
-        
-        const prevBtn = document.getElementById('prev-week-btn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                currentMonday.setDate(currentMonday.getDate() - 7);
-                renderWeek();
-            });
-        }
-
-        const nextBtn = document.getElementById('next-week-btn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                currentMonday.setDate(currentMonday.getDate() + 7);
-                renderWeek();
-            });
-        }
+    function renderScheduleViews() {
+        if (document.getElementById('up-next-list')) renderUpNext();
     }
 
-    function renderWeek() {
-        const scheduleContainer = document.getElementById('schedule-container');
-        const weekLabel = document.getElementById('week-label');
-        if (!scheduleContainer || !weekLabel) return;
-
-        scheduleContainer.textContent = ''; // Clear out the old rows
-        
-        // Calculate the Sunday of this week for the label
-        const currentSunday = new Date(currentMonday);
-        currentSunday.setDate(currentMonday.getDate() + 6);
-        
-        // Format label: e.g., "Apr 6 - Apr 12"
-        const formatOptions = { month: 'short', day: 'numeric' };
-        weekLabel.textContent = `${currentMonday.toLocaleDateString('en-US', formatOptions)} - ${currentSunday.toLocaleDateString('en-US', formatOptions)}`;
-
-        // Loop through 7 days of the week (0 = Monday, 6 = Sunday)
-        for (let i = 0; i < 7; i++) {
-            const currentDate = new Date(currentMonday);
-            currentDate.setDate(currentMonday.getDate() + i);
-            
-            // Get string formats for matching ("Monday" and "2026-04-06")
-            const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-            const year = currentDate.getFullYear();
-            const monthIndex = currentDate.getMonth();
-            const dayNum = currentDate.getDate();
-            const month = String(monthIndex + 1).padStart(2, '0');
-            const day = String(dayNum).padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`
-
-            // Filter the master data for shows happening on this specific date
-            const daysShows = masterScheduleData.filter(show => {
-                // Skip half-filled rows in the sheet
-                if (!show.Start || !show.End) return false;
-                // Rule 1: Does it have a specific Date that matches today?
-                if (show.Date && show.Date === dateString) return true;
-                // Rule 2: Does it have NO specific date, but the Day matches?
-                if ((!show.Date || show.Date.trim() === "") && show.Day === dayName) return true;
-                return false;
+    // Every scheduled slot from yesterday to a week ahead, as real moments in time,
+    // sorted. Sheet times are Copenhagen wall-clock (see cphWallToDate).
+    function getUpcomingShows(limit = 3) {
+        const now = new Date();
+        const cph = getNowInCopenhagen();
+        const occurrences = [];
+        for (let offset = -1; offset <= 7; offset++) {
+            const day = new Date(cph.getFullYear(), cph.getMonth(), cph.getDate() + offset);
+            const y = day.getFullYear(), m = day.getMonth(), d = day.getDate();
+            const dayName = day.toLocaleDateString('en-US', { weekday: 'long' });
+            const dateString = localDateString(day);
+            masterScheduleData.forEach((show) => {
+                if (!show.Start || !show.End) return;
+                const dated = show.Date && show.Date.trim() !== '';
+                if (dated ? show.Date !== dateString : show.Day !== dayName) return;
+                const [sh, sm] = show.Start.split(':').map(Number);
+                const [eh, em] = show.End.split(':').map(Number);
+                const start = cphWallToDate(y, m, d, sh, sm);
+                const end = (eh === 0 && em === 0) ? cphWallToDate(y, m, d + 1, 0, 0) : cphWallToDate(y, m, d, eh, em);
+                if (end > now) occurrences.push({ show, start, end, live: start <= now });
             });
+        }
+        occurrences.sort((a, b) => a.start - b.start);
+        return occurrences.slice(0, limit);
+    }
 
-            // If there are shows today, sort them by start time and build the HTML
-            if (daysShows.length > 0) {
-                
-                // Sort by start time (e.g., "12:00" comes before "16:00")
-                daysShows.sort((a, b) => a.Start.localeCompare(b.Start));
-
-                // Create the Day Header (built with textContent so sheet text can't inject HTML)
-                const group = document.createElement('div');
-                group.className = 'schedule-day-group';
-                const title = document.createElement('h3');
-                title.className = 'schedule-day-title';
-                title.textContent = `${dayName}, ${currentDate.toLocaleDateString('en-US', formatOptions)}`;
-                group.appendChild(title);
-               
-                // Add each show row
-                daysShows.forEach(show => {
-                    const [sh, sm] = show.Start.split(':').map(Number);
-                    const [eh, em] = show.End.split(':').map(Number);
-                    const startInstant = cphWallToDate(year, monthIndex, dayNum, sh, sm);
-                    // An end of 00:00 means the following midnight, not the same morning
-                    const endInstant = (eh === 0 && em === 0)
-                        ? cphWallToDate(year, monthIndex, dayNum + 1, 0, 0)
-                        : cphWallToDate(year, monthIndex, dayNum, eh, em);
-
-                    const fmt = t => t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, numberingSystem: 'latn' });
-
-                    // Marker if the show lands on a different calendar day in local time
-                    const cetMidnight = new Date(year, monthIndex, dayNum).getTime();
-                    const localMidnight = new Date(startInstant.getFullYear(), startInstant.getMonth(), startInstant.getDate()).getTime();
-                    const dayDelta = Math.round((localMidnight - cetMidnight) / 86400000);
-                    const marker = dayDelta > 0 ? ` (+${dayDelta})` : dayDelta < 0 ? ` (${dayDelta})` : '';
-
-                    const row = document.createElement('div');
-                    row.className = 'schedule-row';
-                    const time = document.createElement('div');
-                    time.className = 'schedule-time';
-                    time.textContent = `${fmt(startInstant)} - ${fmt(endInstant)}${marker}`;
-                    const info = document.createElement('div');
-                    info.className = 'schedule-info';
-                    info.textContent = `${show.Show ? `${show.Show} w/ ` : ''}${show.DJ || ''}`;
-                    row.append(time, info);
-                    group.appendChild(row);
-                });
-
-                scheduleContainer.appendChild(group);
+    // Home: the next five shows (this is the whole schedule now)
+    function renderUpNext() {
+        const list = document.getElementById('up-next-list');
+        if (!list) return;
+        list.textContent = '';
+        const upcoming = getUpcomingShows(5);
+        if (!upcoming.length) {
+            const li = document.createElement('li');
+            li.className = 'up-next-empty';
+            li.textContent = scheduleError
+                ? "Couldn't load the schedule. Try again in a minute."
+                : 'Nothing scheduled this week yet. Follow us on Instagram for new shows.';
+            list.appendChild(li);
+            return;
+        }
+        upcoming.forEach(({ show, start, live }) => {
+            const li = document.createElement('li');
+            li.className = 'up-next-item' + (live ? ' is-live' : '');
+            const when = document.createElement('span');
+            when.className = 'up-next-when';
+            when.textContent = live ? 'now' : formatWhen(start);
+            const what = document.createElement('span');
+            what.className = 'up-next-what';
+            what.textContent = show.Show || show.DJ || '';
+            if (show.Show && show.DJ) {
+                const dj = document.createElement('span');
+                dj.className = 'up-next-dj';
+                dj.textContent = ` w/ ${show.DJ}`;
+                what.appendChild(dj);
             }
-        }
-        
-        // If the entire week is completely empty
-        if (!scheduleContainer.hasChildNodes()) {
-            const empty = document.createElement('p');
-            empty.className = 'schedule-empty';
-            empty.textContent = scheduleError
-                ? "Couldn't load the schedule. Please try again later."
-                : 'No shows scheduled for this week.';
-            scheduleContainer.appendChild(empty);
-        }
+            li.append(when, what);
+            list.appendChild(li);
+        });
+    }
+
+    // Under "up next": say which timezone the times are in
+    function setTimezoneNote() {
+        const tzNote = document.getElementById('tz-note');
+        if (!tzNote) return;
+        const abbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+        tzNote.textContent = `Times are in your timezone (${abbr}).`;
     }
 
     // ==========================================
@@ -351,14 +376,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // "2026-04-06" from a Date's local fields
     function localDateString(d) {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
-    // Find the Monday of whatever Date is passed to it
-    function getMonday(d) {
-        d = new Date(d);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-        return new Date(d.setDate(diff));
     }
 
     // The schedule sheet's Start/End are Europe/Copenhagen wall-clock times. These helpers
@@ -498,12 +515,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const oldFrame = document.querySelector("#app-frame");
         oldFrame.replaceWith(document.importNode(newFrame, true));
         document.title = newDocument.title;
+        document.documentElement.dataset.page = newDocument.documentElement.dataset.page || '';
         init();
 
         if (focus) {
             window.scrollTo(0, 0);
             // Move keyboard / screen-reader focus to the new page's heading
-            const heading = document.querySelector('#app-frame h2') || document.querySelector('#app-frame main');
+            const heading = document.querySelector('#app-frame h1') || document.getElementById('app-frame');
             if (heading) {
                 heading.setAttribute('tabindex', '-1');
                 heading.focus({ preventScroll: true });
@@ -512,112 +530,403 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 7. PAST SHOWS (MIXCLOUD API)
+    // 7. ARCHIVE, RESIDENTS AND THE SHOW PLAYER
     // ==========================================
+    // Past shows come from Mixcloud. Residents come from the "Residents" tab of the
+    // schedule sheet (falling back to the list below until that tab exists). A show
+    // belongs to every resident whose name (or one of their aliases) appears in its
+    // title, so b2b shows land on both pages.
 
-    function loadPastShows() {
-        const container = document.getElementById('past-shows-container');
-        // Only run if we are on the past shows page
-        if (!container) return; 
-
-        container.textContent = '';
-        if (pastShows.length) {
-            pastShows.forEach((show) => container.appendChild(buildShowCard(show)));
-            renderMoreButton(container);
-        } else {
-            const loading = document.createElement('p');
-            loading.className = 'past-shows-loading';
-            loading.textContent = 'Loading transmissions...';
-            container.appendChild(loading);
-            fetchMorePastShows(container);
-        }
+    // "Kraüt & Ruben!" -> "kraut ruben": lower case, no accents, words only
+    function normalize(text) {
+        return String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+    function containsName(text, alias) {
+        return alias && (' ' + normalize(text) + ' ').includes(' ' + alias + ' ');
     }
 
-    async function fetchMorePastShows(container) {
-        if (pastShowsLoading || !pastShowsNext) return;
-        pastShowsLoading = true;
-        const button = document.getElementById('past-shows-more');
-        if (button) { button.disabled = true; button.textContent = 'loading…'; }
-        try {
-            const response = await fetch(pastShowsNext);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const mixcloudData = await response.json();
-            const batch = Array.isArray(mixcloudData.data) ? mixcloudData.data : [];
-            pastShowsNext = (mixcloudData.paging && mixcloudData.paging.next) || null;
-            pastShows = pastShows.concat(batch);
+    // ---- data ----
 
-            // The page may have changed while we waited
-            const current = document.getElementById('past-shows-container');
-            if (current === container) {
-                const loading = container.querySelector('.past-shows-loading');
-                if (loading) loading.remove();
-                batch.forEach((show) => container.appendChild(buildShowCard(show)));
-                if (!pastShows.length) {
-                    const p = document.createElement('p');
-                    p.textContent = 'No past transmissions yet.';
-                    container.appendChild(p);
-                }
-                renderMoreButton(container);
+    function loadArchive() {
+        if (archivePromise) return archivePromise;
+        archivePromise = (async () => {
+            let url = MIXCLOUD_URL;
+            const all = [];
+            for (let page = 0; url && page < 20; page++) {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                if (Array.isArray(data.data)) all.push(...data.data);
+                url = (data.paging && data.paging.next) || null;
             }
+            archive = all;
+            return archive;
+        })().catch((error) => {
+            archivePromise = null;          // allow a retry on the next page view
+            throw error;
+        });
+        return archivePromise;
+    }
+
+    function loadResidents() {
+        if (residentsPromise) return residentsPromise;
+        residentsPromise = fetch(RESIDENTS_URL)
+            .then((response) => (response.ok ? response.json() : null))
+            .catch(() => null)
+            .then((rows) => {
+                const usable = Array.isArray(rows) ? rows.filter((r) => r && r.Name && String(r.Name).trim()) : [];
+                residents = (usable.length ? usable : RESIDENTS_FALLBACK).map(toResident);
+                return residents;
+            });
+        return residentsPromise;
+    }
+
+    function toResident(row) {
+        const name = String(row.Name).trim();
+        const slug = normalize(row.Slug || name).replace(/ /g, '');
+        const aliases = String(row.Aliases || '').split(',').map(normalize).filter(Boolean);
+        if (!aliases.includes(normalize(name))) aliases.unshift(normalize(name));
+        const photo = String(row.Photo || '').trim();
+        return {
+            name, slug, aliases,
+            city: String(row.City || '').trim(),
+            photo: !photo ? `css/pictures/residents/${slug}.avif`
+                : /^https?:\/\//.test(photo) || photo.includes('/') ? photo : `css/pictures/residents/${photo}`,
+            instagram: profileUrl(row.Instagram, 'https://www.instagram.com/'),
+            mixcloud: profileUrl(row.Mixcloud, 'https://www.mixcloud.com/'),
+            bio: String(row.Bio || '').trim(),
+        };
+    }
+    // Accept "@handle", "handle" or a full link
+    function profileUrl(value, base) {
+        const v = String(value || '').trim();
+        if (!v) return '';
+        if (/^https?:\/\//.test(v)) return v;
+        return base + v.replace(/^@/, '').replace(/^\/+|\/+$/g, '') + '/';
+    }
+
+    // Which residents host this upload / schedule row?
+    function hostsOf(text) {
+        if (!residents) return [];
+        return residents.filter((r) => r.aliases.some((a) => containsName(text, a)));
+    }
+
+    // ---- show cards ----
+
+    // "Rhythmism w/ heatsink - 27 September 2026" -> title "Rhythmism", date "27 September 2026"
+    function splitTitle(name) {
+        const [main, ...rest] = String(name || '').split(' - ');
+        const date = rest.join(' - ');
+        const title = main.split(/\s+(?:w\/|with)\s+/i)[0].trim() || main.trim();
+        return { title, date };
+    }
+
+    // One card, built with textContent so show names can't inject HTML.
+    // The artwork plays the show in the player; host names link to resident pages.
+    function buildShowCard(show) {
+        const { title, date } = splitTitle(show.name);
+        const hosts = hostsOf(show.name);
+
+        const card = document.createElement('article');
+        card.className = 'show-item';
+
+        const play = document.createElement('button');
+        play.type = 'button';
+        play.className = 'show-play';
+        play.setAttribute('aria-label', `Play ${show.name}`);
+        const img = document.createElement('img');
+        img.src = show.pictures ? (show.pictures.large || show.pictures.medium || '') : '';
+        img.alt = '';
+        img.loading = 'lazy';
+        play.appendChild(img);
+        play.addEventListener('click', () => playArchived(show));
+
+        const heading = document.createElement('p');
+        heading.className = 'show-title';
+        heading.textContent = hosts.length ? title : (show.name || '').split(' - ')[0];
+        card.append(play, heading);
+
+        if (hosts.length) {
+            const by = document.createElement('div');
+            by.className = 'show-hosts';
+            by.append('w/ ');
+            hosts.forEach((r, i) => {
+                if (i) by.append(i === hosts.length - 1 ? ' & ' : ', ');
+                const a = document.createElement('a');
+                a.href = `/resident?r=${encodeURIComponent(r.slug)}`;
+                a.textContent = r.name;
+                by.appendChild(a);
+            });
+            card.appendChild(by);
+        }
+        if (date) {
+            const d = document.createElement('div');
+            d.className = 'show-date';
+            d.textContent = date;
+            card.appendChild(d);
+        }
+        initLinks(card);
+        return card;
+    }
+
+    function showMessage(container, text) {
+        container.textContent = '';
+        const p = document.createElement('p');
+        p.className = 'past-shows-loading';
+        p.textContent = text;
+        container.appendChild(p);
+    }
+
+    // ---- past shows page ----
+
+    async function loadPastShows() {
+        const container = document.getElementById('past-shows-container');
+        if (!container) return;
+        if (!archive.length) showMessage(container, 'loading transmissions…');
+        try {
+            await Promise.all([loadArchive(), loadResidents()]);
         } catch (error) {
             console.error("Couldn't fetch past shows from Mixcloud:", error);
-            if (!pastShows.length) {
-                container.textContent = '';
-                const p = document.createElement('p');
-                p.textContent = "Couldn't load past shows. Please check our Mixcloud page directly.";
-                container.appendChild(p);
-            }
-        } finally {
-            pastShowsLoading = false;
-            const btn = document.getElementById('past-shows-more');
-            if (btn) { btn.disabled = false; btn.textContent = 'more transmissions'; }
+            if (document.getElementById('past-shows-container') === container)
+                showMessage(container, "Couldn't load past shows. Listen back on our Mixcloud page instead.");
+            return;
         }
+        if (document.getElementById('past-shows-container') !== container) return;
+        container.textContent = '';
+        if (!archive.length) { showMessage(container, 'No past transmissions yet.'); return; }
+        pastShowsShown = 0;
+        showMorePastShows(container);
     }
 
-    // One card, built with textContent so show names can't inject HTML
-    function buildShowCard(show) {
-        // Names look like "Show name - date"; split off the date if there is one
-        const [showName, ...rest] = (show.name || '').split(' - ');
-        const showDate = rest.join(' - ');
-
-        const link = document.createElement('a');
-        link.className = 'show-item';
-        link.href = show.url;
-        link.target = '_blank';
-        link.rel = 'noopener';
-
-        const img = document.createElement('img');
-        img.src = show.pictures ? show.pictures.large : '';
-        img.alt = showName;
-        img.loading = 'lazy';
-        const title = document.createElement('p');
-        title.textContent = showName;
-        link.append(img, title);
-
-        if (showDate) {
-            const date = document.createElement('span');
-            date.className = 'show-date';
-            date.textContent = showDate;
-            link.appendChild(date);
-        }
-        return link;
-    }
-
-    function renderMoreButton(container) {
+    function showMorePastShows(container) {
+        archive.slice(pastShowsShown, pastShowsShown + PAST_SHOWS_PAGE)
+            .forEach((show) => container.appendChild(buildShowCard(show)));
+        pastShowsShown = Math.min(archive.length, pastShowsShown + PAST_SHOWS_PAGE);
         const old = document.getElementById('past-shows-more');
         if (old) old.remove();
-        if (!pastShowsNext) return;
+        if (pastShowsShown >= archive.length) return;
         const button = document.createElement('button');
         button.id = 'past-shows-more';
         button.type = 'button';
         button.className = 'nav-btn past-shows-more';
-        button.textContent = 'more transmissions';
-        button.addEventListener('click', () => fetchMorePastShows(container));
+        button.textContent = 'load more';
+        button.addEventListener('click', () => showMorePastShows(container));
         container.after(button);
     }
 
-    function initLinks() {
-        document.querySelectorAll('#app-frame a[href^="/"]').forEach((link) => {
+    // ---- home: the four newest ----
+
+    async function loadLatestShows() {
+        const container = document.getElementById('latest-shows');
+        if (!container) return;
+        try {
+            await Promise.all([loadArchive(), loadResidents()]);
+        } catch (error) {
+            console.error("Couldn't fetch latest shows from Mixcloud:", error);
+        }
+        if (document.getElementById('latest-shows') !== container) return;
+        container.textContent = '';
+        if (!archive.length) {
+            const p = document.createElement('p');
+            p.textContent = 'Listen back to past shows on our Mixcloud page.';
+            container.appendChild(p);
+            return;
+        }
+        archive.slice(0, 4).forEach((show) => container.appendChild(buildShowCard(show)));
+    }
+
+    // ---- residents page ----
+
+    async function loadResidentsGrid() {
+        const grid = document.getElementById('residents-grid');
+        if (!grid) return;
+        await loadResidents();
+        if (document.getElementById('residents-grid') !== grid) return;
+        grid.textContent = '';
+        residents.forEach((r) => {
+            const a = document.createElement('a');
+            a.className = 'resident';
+            a.href = `/resident?r=${encodeURIComponent(r.slug)}`;
+            const img = document.createElement('img');
+            img.src = r.photo; img.alt = ''; img.loading = 'lazy'; img.width = 1000; img.height = 1334;
+            const cap = document.createElement('span');
+            cap.className = 'resident-caption';
+            const n = document.createElement('span'); n.className = 'resident-name'; n.textContent = r.name;
+            const c = document.createElement('span'); c.className = 'resident-place'; c.textContent = r.city;
+            cap.append(n, c);
+            a.append(img, cap);
+            grid.appendChild(a);
+        });
+        initLinks(grid);
+    }
+
+    // ---- one resident's page: /resident?r=heatsink ----
+
+    async function loadResidentPage() {
+        const view = document.getElementById('resident-view');
+        if (!view) return;
+        const slug = normalize(new URLSearchParams(location.search).get('r') || '').replace(/ /g, '');
+        await loadResidents();
+        if (document.getElementById('resident-view') !== view) return;
+        const r = residents.find((x) => x.slug === slug);
+        const nameEl = document.getElementById('resident-name');
+
+        if (!r) {
+            nameEl.textContent = 'resident not found';
+            document.title = 'Residents - Radiomantis';
+            const p = document.createElement('p');
+            p.className = 'page-intro';
+            p.append("We couldn't find that resident. ");
+            const back = document.createElement('a');
+            back.href = '/residents'; back.textContent = 'See all residents';
+            p.appendChild(back);
+            view.replaceChildren(p);
+            initLinks(view);
+            return;
+        }
+
+        nameEl.textContent = r.name;
+        document.title = `${r.name} - Radiomantis`;
+        const photo = document.getElementById('resident-photo');
+        photo.src = r.photo;
+        photo.hidden = false;
+
+        const info = document.getElementById('resident-info');
+        info.textContent = '';
+        const add = (cls, text) => {
+            if (!text) return null;
+            const el = document.createElement('p');
+            el.className = cls; el.textContent = text;
+            info.appendChild(el); return el;
+        };
+        add('resident-city', r.city);
+        const genresEl = add('resident-genres', ' ');
+        const nextEl = add('resident-next', ' ');
+        add('resident-bio', r.bio);
+        if (r.instagram || r.mixcloud) {
+            const ul = document.createElement('ul');
+            ul.className = 'resident-links';
+            [['Instagram', r.instagram], ['Mixcloud', r.mixcloud]].forEach(([label, url]) => {
+                if (!url) return;
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label;
+                li.appendChild(a); ul.appendChild(li);
+            });
+            info.appendChild(ul);
+        }
+
+        // Next time on air, from the schedule sheet
+        loadGlobalSchedule().then(() => {
+            if (!nextEl.isConnected) return;
+            const next = getUpcomingShows(200).find((o) => hostsOf(`${o.show.DJ || ''} ${o.show.Show || ''}`).includes(r));
+            nextEl.textContent = next ? (next.live ? 'on air now' : `next on air: ${formatWhen(next.start)}`) : '';
+            nextEl.hidden = !next;
+        });
+
+        // Their transmissions, from Mixcloud
+        const list = document.getElementById('resident-shows');
+        const count = document.getElementById('resident-count');
+        showMessage(list, 'loading transmissions…');
+        try {
+            await loadArchive();
+        } catch (error) {
+            console.error("Couldn't fetch shows from Mixcloud:", error);
+            if (list.isConnected) showMessage(list, "Couldn't load shows. Listen back on our Mixcloud page instead.");
+            return;
+        }
+        if (!list.isConnected) return;
+        const theirs = archive.filter((show) => hostsOf(show.name).includes(r));
+        count.textContent = theirs.length ? String(theirs.length) : '';
+        list.textContent = '';
+        if (!theirs.length) showMessage(list, 'No archived shows yet.');
+        theirs.forEach((show) => list.appendChild(buildShowCard(show)));
+
+        // Genres: the Mixcloud tags they use most
+        const tally = new Map();
+        theirs.forEach((show) => (show.tags || []).forEach((t) => {
+            const name = String(t.name || '').toLowerCase().trim();
+            if (name) tally.set(name, (tally.get(name) || 0) + 1);
+        }));
+        const top = [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n]) => n);
+        genresEl.textContent = top.join(', ');
+        genresEl.hidden = !top.length;
+    }
+
+    // ---- the show player: Mixcloud's classic widget, docked at the bottom ----
+    // Lives outside #app-frame, so a show keeps playing while you browse.
+    // Starting a show pauses the live stream, and starting the stream pauses the show.
+
+
+    function loadWidgetApi() {
+        if (window.Mixcloud) return Promise.resolve(window.Mixcloud);
+        if (widgetApiPromise) return widgetApiPromise;
+        widgetApiPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://widget.mixcloud.com/media/js/widgetApi.js';
+            s.async = true;
+            s.onload = () => (window.Mixcloud ? resolve(window.Mixcloud) : reject(new Error('no widget API')));
+            s.onerror = () => reject(new Error('widget API failed to load'));
+            document.head.appendChild(s);
+        });
+        widgetApiPromise.catch(() => { widgetApiPromise = null; });
+        return widgetApiPromise;
+    }
+
+    function playArchived(show) {
+        const dock = document.getElementById('mc-dock');
+        const frame = document.getElementById('mc-frame');
+        if (!dock || !frame || !show.key) { if (show.url) window.open(show.url, '_blank', 'noopener'); return; }
+
+        pauseLive();
+        frame.src = 'https://player-widget.mixcloud.com/widget/iframe/?light=1&hide_cover=1&autoplay=1&feed='
+            + encodeURIComponent(show.key);
+        const label = document.getElementById('mc-dock-label');
+        if (label) label.textContent = show.name || '';
+        dock.hidden = false;
+        document.documentElement.setAttribute('data-dock', '');
+
+        widget = null;
+        loadWidgetApi().then((Mixcloud) => {
+            const w = Mixcloud.PlayerWidget(frame);
+            return w.ready.then(() => {
+                widget = w;
+                w.events.play.on(pauseLive);
+            });
+        }).catch(() => { /* the player still works, it just won't pause the stream by itself */ });
+    }
+
+    function closeDock() {
+        const dock = document.getElementById('mc-dock');
+        const frame = document.getElementById('mc-frame');
+        if (frame) frame.src = 'about:blank';
+        if (dock) dock.hidden = true;
+        widget = null;
+        document.documentElement.removeAttribute('data-dock');
+    }
+
+    function pauseArchived() {
+        if (widget) { try { widget.pause(); } catch (e) { /* ignore */ } }
+    }
+
+    function pauseLive() {
+        const audioStream = document.getElementById('radio-stream');
+        if (!audioStream || audioStream.paused) return;
+        audioStream.pause();
+        audioStream.removeAttribute('src');
+        audioStream.load();
+        syncPlayButton();
+    }
+
+    function initDock() {
+        const close = document.getElementById('mc-dock-close');
+        if (close) close.addEventListener('click', closeDock);
+    }
+
+    function initLinks(root) {
+        if (!root) return;
+        root.querySelectorAll('a[href^="/"]').forEach((link) => {
             link.addEventListener("click", (e) => {
                 // Let the browser handle new-tab / new-window clicks and downloads
                 if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -714,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ---- nickname gate ----
         function applyNickState() {
             drawer.classList.toggle('needs-nick', !nick);
-            document.getElementById('chat-title').textContent = nick ? `Chat · ${nick}` : 'chat';
+            document.getElementById('chat-title').textContent = nick ? `chat as ${nick}` : 'chat';
         }
         function setNick(value) {
             const v = value.trim().slice(0, 24);

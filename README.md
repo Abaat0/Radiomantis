@@ -8,7 +8,7 @@ backend. The pages are served straight from disk, the streaming/broadcast side l
 [AzuraCast](https://www.azuracast.com/), and a few things are pulled live in the browser:
 
 - **Now playing** — polled from the AzuraCast API (`/api/nowplaying`).
-- **Schedule** — read from a shared Google Sheet (via [opensheet](https://github.com/benborgers/opensheet)),
+- **Up next** (home page) — read from a shared Google Sheet (via [opensheet](https://github.com/benborgers/opensheet)),
   which is also the source of truth for live show/DJ names.
 - **Past shows** — fetched from the [Mixcloud](https://www.mixcloud.com/radiomantis/) API.
 - **Chat** — a self-hosted WebSocket server in [`server/`](server/).
@@ -21,11 +21,12 @@ background plant, and the chat drawer — lives *outside* `#app-frame`.
 ## Repo structure
 
 ```
-index.html, schedule.html, residents.html,     the five pages (each has its own <head>;
+index.html, residents.html,                    the four pages (each has its own <head>;
 past-shows.html, about.html                     the shared boilerplate is duplicated)
+schedule.html                                   redirect to home (the schedule is "up next" there)
 css/style.css                                   all styles (fluid type tokens up top)
 css/pictures/                                   logos, backgrounds, resident/show art
-javascript/script.js                            everything: player, schedule, past shows,
+javascript/script.js                            everything: player, up next, past shows,
                                                 SPA nav, and the chat client
 manifest.json                                   PWA manifest
 server/                                          the live-chat WebSocket backend (see its README)
@@ -40,9 +41,9 @@ Serve the repo root with any static server, e.g.:
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000/index.html`. Note that the clean URLs (`/schedule`) are
+Then open `http://localhost:8000/index.html`. Note that the clean URLs (`/residents`) are
 resolved in production by nginx; locally, open the `.html` files directly (e.g.
-`schedule.html`), the SPA nav to sub-pages works, but refreshing on a clean URL won't. 
+`residents.html`), the SPA nav to sub-pages works, but refreshing on a clean URL won't. 
 Kinda annoying but it looks nice in production!
 
 For the chat, run the backend too (see [`server/README.md`](server/README.md)):
